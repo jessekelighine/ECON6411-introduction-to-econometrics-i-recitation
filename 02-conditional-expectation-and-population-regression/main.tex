@@ -1,0 +1,314 @@
+%!TEX program = xelatex
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Note:\\Conditional Expectation \& Population Regression}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\maketitle
+
+\section{Conditional Expectation}
+
+Let $Y$ denote a real-valued random variable and $X\in\reals^k$ denote a random vector.
+Throughout this section, assume that $\E|Y|<\infty$.
+
+\begin{definition}[Conditional Expectation]\label{def-conditional-expectation}
+	Let $X$ and $Y$ be two random variables whose joint density $f_{X,Y}(x,y)$ exists.
+	The conditional expectation of $Y$ given $X=x$ is defined as
+	\begin{align}
+		\E(Y\given X=x) \coloneqq \int_\reals y f_{Y\given X}(y\given x) \diff y,
+	\end{align}
+	where $f_{Y\given X}(y\given x)$ is the conditional density of $Y$ given $X=x$.
+\end{definition}
+
+% Conditional expectations also apply when densities do not exist,
+% including when regressors are discrete or contain a constant.
+
+\begin{theorem}[\gls{lie}]\label{thm-lie}
+	Let $X$, $Y$, and $Z$ be random variables with $\E|Y|<\infty$.
+	Then, we have
+	\begin{align}
+		\E (Y\given Z) = \E[\E(Y\given X,Z)\given Z].
+	\end{align}
+\end{theorem}
+\begin{proof}[Sketch of Proof]
+	We show the case where the joint density $f_{X,Y,Z}(x,y,z)$ exists.
+	% Let $m(x,z)\coloneqq\E(Y\given X=x,Z=z)$.
+	For any $z$, we have
+	\begin{align*}
+		\E[\E(Y\given X,Z)\given Z=z]
+		% &= \int m(x,z) f_{X\given Z}(x\given z) \diff x \\
+		&= \int \left(\int y f_{Y\given X,Z}(y\given x,z) \diff y\right) f_{X\given Z}(x\given z) \diff x \\
+		&= \int y \left(\int f_{Y, X\given Z}(y, x\given z) \diff x\right) \diff y \\
+		&= \int y f_{Y\given Z}(y\given z) \diff y = \E(Y\given Z=z).
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{remark}
+	The	\gls{lie} is also known as the ``law of \emph{total} expectations.''
+\end{remark}
+
+\begin{remark}
+	In the special case where $Z$ is a constant,
+	the \gls{lie} simplifies to
+	\begin{align}
+		\E(Y)=\E[\E(Y\given X)].
+	\end{align}
+\end{remark}
+
+\begin{theorem}[Conditioning Theorem]\label{thm-conditioning}
+	Let $X$ and $Y$ be two random variables with $\E|Y|<\infty$.
+	Then, for any function $g$ of $X$ with $\E|g(X)Y|<\infty$, we have
+	\begin{align}
+		\E(g(X)Y\given X) = g(X)\E(Y\given X).
+	\end{align}
+\end{theorem}
+\begin{proof}[Sketch of Proof]
+	Once $X$ is \emph{given} or \emph{fixed}, $g(X)$ is no longer random,
+	so it can be treated as a constant and pulled out of the conditional expectation.
+\end{proof}
+
+\begin{theorem}[Characterization of Conditional Expectation]\label{thm-cond-exp-char}
+	Suppose that $\E(Y^2)<\infty$.
+	Then, $\E(Y\given X)$ is the unique function of $X$ that minimizes the mean-squared error loss:
+	\begin{align}
+		\E(Y\given X)
+		= \arg\min_{g(X)} \E[(Y - g(X))^2].
+	\end{align}
+	Here we compare predictors with finite second moments.
+\end{theorem}
+\begin{proof}
+	For simplicity, write $m(X)\coloneqq\E(Y\given X)$.
+	Let $g(X)$ be any function of $X$ with $\E[g(X)^2]<\infty$.
+	Then we can decompose the mean squared error as follows:
+	\begin{align*}
+		\E[(Y - g(X))^2]
+		&= \E[(Y - m(X) + m(X) - g(X))^2] \\
+		&= \E[(Y - m(X))^2] + \E[(m(X) - g(X))^2] \\
+		&\quad+ 2\E[(Y - m(X))(m(X) - g(X))].
+	\end{align*}
+	By \gls{lie} and \nameref{thm-conditioning}, we have
+	\begin{align*}
+		\E[(Y - m(X))(m(X) - g(X))]
+		&= \E[\E[(Y - m(X))(m(X) - g(X))\given X]] \\
+		&= \E[(m(X) - g(X))\E[Y - m(X)\given X]] = 0.
+	\end{align*}
+	Therefore, we have
+	\begin{align}
+		\E[(Y - g(X))^2] = \E[(Y - m(X))^2] + \E[(m(X) - g(X))^2].
+	\end{align}
+	The first term does not depend on $g(X)$.
+	The second term is non-negative and equals zero if and only if $g(X) = m(X)$ almost surely.
+	Hence, $m(X)$ is the unique function of $X$ that minimizes the mean squared error.
+\end{proof}
+
+\begin{remark}[``Unique'']
+	Technically, conditional expectations are unique only up to almost-sure equality.
+	This means that two versions may differ on a set of values of $X$ that has probability zero.
+	That said, in this class, we will not focus on these measure-theoretic technicalities.
+\end{remark}
+
+\section{Population Regression Problem}
+
+We now let $Y$ be a real-valued outcome and $X=(X_1,\ldots,X_k)\T$ be a $k$-dimensional vector of regressors.
+The properties of conditional expectations above also apply when we condition on a vector.
+Throughout this section, assume that $\E(Y^2)<\infty$ and $\E(X_j^2)<\infty$ for every $j$.
+When an intercept is included, the first component of $X$ is the constant $1$.
+
+\begin{definition}[Conditional Mean Decomposition]\label{def-conditional-mean-decomposition}
+	Let $m(X)\coloneqq\E(Y\given X)$ and define $\varepsilon\coloneqq Y-m(X)$.
+	Then we can write
+	\begin{align}
+		Y = m(X) + \varepsilon
+		\quad\text{with}\quad
+		\E(\varepsilon\given X)=0.
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	The zero conditional mean follows directly from
+	\begin{align}
+		\E(\varepsilon\given X)
+		= \E(Y-m(X)\given X)
+		= \E(Y\given X)-m(X)=0.
+	\end{align}
+	Thus, this decomposition is available for any $Y$ and $X$ satisfying our moment assumptions.
+	It does not require the conditional mean to be linear.
+\end{remark}
+
+\begin{proposition}[Orthogonality of the Conditional Mean Error]\label{prop-conditional-mean-orthogonality}
+	For any measurable function $g(X)$ with $\E[g(X)^2]<\infty$, we have
+	\begin{align}
+		\E[g(X)\varepsilon]=0.
+	\end{align}
+	In particular, $\E(\varepsilon)=0$ and $\E(X\varepsilon)=0$.
+\end{proposition}
+\begin{proof}
+	% The product is integrable by the Cauchy--Schwarz inequality.
+	By \gls{lie} and \nameref{thm-conditioning},
+	\begin{align*}
+		\E[g(X)\varepsilon]
+		&= \E[\E(g(X)\varepsilon\given X)]
+		=\E[g(X)\E(\varepsilon\given X)]=0.
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{remark}[Interpretation of \autoref{prop-conditional-mean-orthogonality}]
+	The conditional mean error is orthogonal not only to each regressor,
+	but also to every function of $X$ with a finite second moment.
+	Thus, no such function can be added to $m(X)$ to improve its mean squared prediction error.
+	This does not mean that $\varepsilon$ and $X$ are independent:
+	for example, the conditional variance of $\varepsilon$ given $X$ may still depend on $X$.
+\end{remark}
+
+\begin{definition}[Best Linear Predictor]\label{def-best-linear-predictor}
+	The population least squares coefficient is a solution to
+	\begin{align}\label{eq-population-least-squares-objective}
+		\beta\in\arg\min_{b\in\reals^k}\E[(Y-X\T b)^2].
+	\end{align}
+	The function $X\T\beta$ is called the \emph{best linear predictor} of $Y$ given $X$,
+	and $u\coloneqq Y-X\T\beta$ is the \emph{population regression error}.
+\end{definition}
+
+\begin{remark}
+	By \nameref{thm-cond-exp-char}, $m(X)$ is the unique best predictor of $Y$ under mean squared error loss.
+	By imposing linearity as in \eqref{eq-population-least-squares-objective},
+	we have the following decomposition given any $b\in\reals^k$:
+	\begin{align}\label{eq-linear-prediction-decomposition}
+		\E[(Y-X\T b)^2]
+		=\E(\varepsilon^2)+\E[(m(X)-X\T b)^2].
+	\end{align}
+	The first term is the prediction error that remains even if we know the conditional mean.
+	The second term measures how well $X\T b$ approximates the conditional mean
+	and is zero exactly when $m(X)=X\T b$.
+\end{remark}
+
+\begin{theorem}[Population Least Squares]\label{thm-population-least-squares}
+	Suppose that $\E(XX\T)$ is nonsingular.
+	Then the population least squares coefficient is unique and satisfies
+	\begin{align}\label{eq-population-least-squares}
+		\beta=\E(XX\T)\inv\E(XY).
+	\end{align}
+	Equivalently, it is the unique solution to the equations
+	\begin{align}\label{eq-population-normal-equations}
+		\E[X(Y-X\T\beta)]=0.
+	\end{align}
+\end{theorem}
+\begin{proof}
+	Expanding the objective gives
+	\begin{align*}
+		\E[(Y-X\T b)^2]=\E(Y^2)-2b\T\E(XY)+b\T\E(XX\T)b.
+	\end{align*}
+	Differentiating with respect to $b$ gives the first-order condition
+	\begin{align}
+		-2\E(XY)+2\E(XX\T)b=0,
+	\end{align}
+	which rearranges to the population normal equation $\E[X(Y-X\T b)]=0$.
+	Since $\E(XX\T)$ is nonsingular, we have
+	\begin{align}
+		\beta = \E(XX\T)\inv\E(XY).
+	\end{align}
+	Moreover, $\E(XX\T)$ being strictly positive definite implies that the objective is strictly convex
+	and the first-order condition determines its unique minimizer.
+\end{proof}
+
+\begin{remark}[Moment Conditions]
+	Sometimes you will see \eqref{eq-population-normal-equations} referred to as the \emph{moment conditions}.
+	The term \emph{moment conditions} emphasizes that they restrict population expectations.
+\end{remark}
+
+\begin{definition}[Perfect Multicollinearity]\label{def-multicollinearity}
+	We say that $X$ suffers from \emph{perfect multicollinearity} if
+	there exists a nonzero vector $v\in\reals^k$ such that $X\T v=0$.
+\end{definition}
+
+\begin{lemma}\label{lem-multicollinearity-positive-definite}
+	If $X$ does not suffer from perfect multicollinearity, then $\E(XX\T)$ is strictly positive definite.
+\end{lemma}
+\begin{proof}
+	Let $v\in\reals^k$ be any nonzero vector.
+	Then we have
+	\begin{align}
+		v\T\E(XX\T)v=\E(v\T XX\T v)=\E[(X\T v)^2]\ge0.
+	\end{align}
+	The expectation of a squared random variable can be zero only when that random variable equals zero.
+	Without perfect multicollinearity, $X\T v=0$ is ruled out for every nonzero $v$,
+	so $\E[(X\T v)^2]>0$.
+	Hence, $\E(XX\T)\succ0$.
+\end{proof}
+
+\begin{remark}[Identification and Perfect Multicollinearity]
+	By \autoref{lem-multicollinearity-positive-definite} and \nameref{thm-population-least-squares},
+	the population least squares coefficient $\beta$ is uniquely determined when there is no perfect multicollinearity.
+	Conversely, if $X\T v=0$ for some nonzero $v$,
+	then $\beta$ and $\beta+v$ give the same predictor and hence the same loss.
+	Thus, $\beta$ is identified if and only if there is no perfect multicollinearity.
+	Perfect multicollinearity does not prevent us from fitting the linear model,
+	but it prevents us from \emph{identifying} the coefficient vector.
+\end{remark}
+
+\begin{remark}[Orthogonality versus Zero Conditional Mean]
+	\autoref{eq-population-normal-equations} gives the population orthogonality condition $\E(X u)=0$,
+	which does not in general imply $\E(u\given X)=0$.
+	Notice that
+	\begin{align}
+		u=\varepsilon+m(X)-X\T\beta,
+		\qquad \E(u\given X)=m(X)-X\T\beta.
+	\end{align}
+	Thus, the regression error has zero conditional mean if and only if the conditional mean is linear in the included regressors.
+\end{remark}
+
+\begin{proposition}\label{prop-intercept-orthogonality}
+	If an intercept is included in \eqref{eq-population-least-squares-objective}, then $\E(u)=0$.
+\end{proposition}
+\begin{proof}
+	Suppose that $X_1=1$.
+	Since $\E(X u)=0$, we have $\E(X_1 u)=\E(u)=0$.
+\end{proof}
+
+\begin{remark}[Intuition of Including an Intercept]
+	An intercept allows us to shift the predictor up or down without changing its slopes.
+	If a predictor's error $u$ has a nonzero mean, shifting the predictor upward by $\E(u)$ gives the new error $u-\E(u)$,
+	with strictly smaller mean squared error:
+	\begin{align*}
+		\E[(u-\E(u))^2]=\E(u^2)-\E(u)^2<\E(u^2).
+	\end{align*}
+	Thus, at the least squares optimum, there can be no remaining average overprediction or underprediction:
+	$\E(u)=0$, or equivalently, $\E(X\T\beta)=\E(Y)$.
+\end{remark}
+
+\begin{example}[One Regressor and an Intercept]\label{eg-population-simple-regression}
+	Let $X=(1,X_2)\T$ with $\var(X_2)>0$, and write $\beta=(\beta_0,\beta_1)\T$,
+	so that $X\T\beta=\beta_0+\beta_1 X_2$.
+	The normal equations become
+	\begin{align*}
+		\E(Y-\beta_0-\beta_1X_2)&=0,\\
+		\E[X_2(Y-\beta_0-\beta_1X_2)]&=0.
+	\end{align*}
+	The first equation gives $\beta_0=\E(Y)-\beta_1\E(X_2)$.
+	Substituting into the second equation yields
+	\begin{align}
+		\beta_1=\frac{\cov(X_2,Y)}{\var(X_2)},
+		\qquad \beta_0=\E(Y)-\beta_1\E(X_2).
+	\end{align}
+	For example, if $X_2\sim\normaldistribution(0,1)$ and $Y=X_2^2$,
+	then $\beta_1=0$ and $\beta_0=1$.
+	The best linear predictor is the constant $1$, whereas the conditional mean is $X_2^2$.
+	Here $u=X_2^2-1$ is orthogonal to both $1$ and $X_2$, but $\E(u\given X_2)=X_2^2-1$ is not zero almost surely.
+\end{example}
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+\end{document}

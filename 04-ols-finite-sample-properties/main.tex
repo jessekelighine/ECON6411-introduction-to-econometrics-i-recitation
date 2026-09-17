@@ -1,0 +1,798 @@
+%!TEX program = xelatex
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Notes: \glsentryshort{ols} Finite Sample Properties}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\maketitle
+
+\noindent
+Finite sample properties describe an estimator's behavior across repeated samples of a given size.
+We ask where its distribution is centered and how dispersed it is.
+Unlike purely algebraic properties, these statements require assumptions about how the data are generated.
+
+\section{The Model and Assumptions}
+
+Write the model as
+\begin{align}\label{eq-model}
+	Y_i=X_i\T\beta+e_i,
+	\qquad Y=X\beta+e,
+\end{align}
+where $X_i\in\reals^k$, $Y=(Y_1,\ldots,Y_n)\T$,
+$X=[X_1\;\cdots\;X_n]\T$, and $e=(e_1,\ldots,e_n)\T$.
+The coefficient $\beta$ is fixed, while the outcomes, regressors, and errors may be random.
+An intercept, if included, counts as one of the $k$ regressors.
+
+\begin{assumption}[Full Rank and Conditional Mean Zero]\label{ass-basic}
+	The design matrix $X$ has full column rank $k$, the errors have finite second moments, and
+	\begin{align}\label{eq-conditional-mean}
+		\E(e\given X)=0.
+	\end{align}
+\end{assumption}
+
+\begin{remark}
+	The conditional mean restriction says that $\E(e_i\given X)=0$ for every observation:
+	we condition on the \emph{entire} design matrix, not just $X_i$.
+	For \gls{iid} observations, $\E(e_i\given X_i)=0$ gives this restriction.
+	Without independent sampling, the two restrictions need not be equivalent.
+\end{remark}
+
+Define the conditional error covariance matrix
+\begin{align}\label{eq-error-covariance}
+	D\coloneqq\E(ee\T\given X)=\var(e\given X).
+\end{align}
+The equality uses $\E(e\given X)=0$.
+Its diagonal entries are $\var(e_i\given X)$, and its off-diagonal entries are $\cov(e_i,e_j\given X)$.
+
+\begin{definition}[Homoskedasticity and Uncorrelated Errors]
+	The errors are \emph{conditionally homoskedastic} if all diagonal entries of $D$ equal the same constant $\sigma^2$.
+	They are \emph{conditionally uncorrelated} across observations if all off-diagonal entries are zero.
+	For time-ordered observations, the latter is also called \emph{no serial correlation}.
+	Together, these restrictions give
+	\begin{align}\label{eq-spherical-errors}
+		D=\sigma^2 I_n.
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	Homoskedasticity concerns the diagonal; absence of correlation concerns the off-diagonal entries.
+	Neither condition implies the other, and uncorrelated errors need not be independent.
+	We impose \eqref{eq-spherical-errors} only where stated.
+\end{remark}
+
+\section{Unbiasedness and Variance}
+
+The starting point for both calculations is
+\begin{align}\label{eq-estimation-error}
+	\widehat\beta
+	=(X\T X)\inv X\T Y
+	=\beta+(X\T X)\inv X\T e.
+\end{align}
+Conditional on $X$, the matrix multiplying $e$ is fixed.
+
+\begin{proposition}[Conditional and Unconditional Unbiasedness]
+	Under \autoref{ass-basic},
+	\begin{align}
+		\E(\widehat\beta\given X)=\beta.
+	\end{align}
+	Consequently, $\E(\widehat\beta)=\beta$ whenever the unconditional expectation exists.
+\end{proposition}
+\begin{proof}
+	Taking conditional expectations in \eqref{eq-estimation-error} gives
+	\begin{align*}
+		\E(\widehat\beta\given X)
+		=\beta+(X\T X)\inv X\T\E(e\given X)=\beta.
+	\end{align*}
+	The \gls{lie} then gives $\E(\widehat\beta)=\E[\E(\widehat\beta\given X)]=\beta$.
+\end{proof}
+
+\begin{remark}[Orthogonality]
+	The population orthogonality restriction $\E(X_i e_i)=0$ does \textsc{not} by itself give finite sample unbiasedness.
+	In \eqref{eq-estimation-error},
+	$(X\T X)\inv$ is random and generally related to $X\T e$.
+	Thus, $\E(X\T e)=0$ does not let us conclude that their product has expectation zero.
+	The conditional mean restriction avoids this problem by first holding $X$ fixed.
+\end{remark}
+
+\begin{proposition}[Conditional Variance]\label{prop-variance}
+	Under \autoref{ass-basic},
+	\begin{align}\label{eq-sandwich}
+		\var(\widehat\beta\given X)
+		=(X\T X)\inv X\T D X(X\T X)\inv.
+	\end{align}
+	\autoref{eq-sandwich} is also known as the \emph{sandwich formula}.
+	If $D=\sigma^2 I_n$, then the sandwich formula simplifies to
+	\begin{align}\label{eq-homoskedastic-variance}
+		\var(\widehat\beta\given X)=\sigma^2(X\T X)\inv.
+	\end{align}
+\end{proposition}
+\begin{proof}
+	\autoref{eq-estimation-error} gives the following:
+	\begin{align}
+		\var(\widehat\beta\given X)
+		&= \var\big((X\T X)\inv X\T e\given X\big)\\
+		&= \E\big[(X\T X)\inv X\T e e\T X(X\T X)\inv\given X\big]\\
+		&= (X\T X)\inv X\T \E(ee\T\given X) X(X\T X)\inv
+		= (X\T X)\inv X\T D X(X\T X)\inv.
+	\end{align}
+	When $D=\sigma^2 I_n$, the middle cross-product cancels one inverse.
+\end{proof}
+
+\begin{remark}[Conditional versus Unconditional Variance]
+	When the unconditional second moments exist, the law of total variance gives
+	\begin{align*}
+		\var(\widehat\beta)
+		&=\E[\var(\widehat\beta\given X)]
+		+\var[\E(\widehat\beta\given X)]\\
+		&=\E[\var(\widehat\beta\given X)].
+	\end{align*}
+	The second term is zero because the conditional mean is the fixed coefficient $\beta$.
+	Under \eqref{eq-spherical-errors}, the unconditional variance is therefore $\sigma^2\E[(X\T X)\inv]$,
+	not $\sigma^2[\E(X\T X)]\inv$.
+\end{remark}
+
+\section{The Gauss-Markov Theorem}
+
+The Gauss-Markov theorem compares \gls{ols} with other estimators that are linear and unbiased.
+We first define the class of estimators and what it means to be best within that class.
+
+\begin{definition}[Best Linear Unbiased Estimator]
+	A \emph{linear estimator} has the form $\widetilde\beta=AY$, where $A$ may depend on $X$ but not on $Y$.
+	It is \emph{conditionally unbiased} if $\E(\widetilde\beta\given X)=\beta$ for every $\beta$.
+	A \emph{best linear unbiased estimator} has the smallest conditional variance for every linear combination of its coefficients among these estimators.
+\end{definition}
+
+\begin{remark}[``Best'' and ``Linear'']
+	Here
+	``best'' means having the smallest conditional variance;
+	``linear'' means linear in the outcome vector $Y$, not necessarily in the covariates.
+\end{remark}
+
+\begin{remark}[Comparing Covariance Matrices]
+	When comparing the variance of two random vectors,
+	say $\widehat\beta$ and $\widetilde\beta$,
+	it is not sufficient to compare the variance of each component separately.
+	Instead, we say that $\widetilde\beta$ has weakly larger variance than $\widehat\beta$ if
+	\begin{align}
+		\var(\widetilde\beta\given X) - \var(\widehat\beta\given X)
+		\succeq 0.
+	\end{align}
+	That is, the difference is positive semidefinite.
+	See \autoref{sec-covariance-ordering}.
+\end{remark}
+
+\begin{theorem}[Gauss-Markov]\label{thm-gauss-markov}
+	Under \autoref{ass-basic} and $D=\sigma^2 I_n$, \gls{ols} is the best linear unbiased estimator.
+\end{theorem}
+\begin{proof}
+	Unbiasedness for every $\beta$ requires $AX=I_k$ since
+	\begin{align*}
+		\E(\widetilde\beta\given X)=AX\beta+A\E(e\given X)=AX\beta.
+	\end{align*}
+	Define $C\coloneqq A-A_0$ where $A_0=(X\T X)\inv X\T$ is the \gls{ols} matrix.
+	Since $A_0X=I_k$, we have $CX=0$.
+	Consequently, $A_0C\T=(X\T X)\inv(CX)\T=0$.
+	Now consider the following:
+	\begin{align*}
+		\var(\widetilde\beta\given X)
+		=\sigma^2(A_0+C)(A_0+C)\T
+		=\sigma^2(X\T X)\inv+\sigma^2CC\T.
+	\end{align*}
+	Note that $\var(\widetilde\beta\given X)-\var(\widehat\beta\given X)=\sigma^2 CC'$
+	is positive semidefinite.
+\end{proof}
+
+\begin{example}[Unequal Error Variances]
+	Suppose $Y_1=\beta+e_1$ and $Y_2=\beta+e_2$, with mean-zero uncorrelated errors of variances $1$ and $4$.
+	The \gls{ols} estimate is $(Y_1+Y_2)/2$, with variance $5/4$.
+	The estimator $\widetilde\beta=(4Y_1+Y_2)/5$ is also linear and unbiased, but its variance is
+	\begin{align*}
+		\var(\widetilde\beta)=\frac{16}{25}\cdot1+\frac{1}{25}\cdot4=\frac45<\frac54.
+	\end{align*}
+	Giving more weight to the less noisy observation improves precision.
+	Thus, \gls{ols} need not be best when homoskedasticity fails.
+\end{example}
+
+\begin{remark}[What Gauss-Markov Does and Does Not Say]
+	The theorem requires neither normality nor independent errors, but it does require $D=\sigma^2 I_n$.
+	It compares \gls{ols} only with linear unbiased estimators; it does not rule out improvements from accepting some bias.
+	Because unequal variances and correlated errors are common in applications,
+	the theorem is merely a benchmark rather than a general efficiency guarantee.
+	When \eqref{eq-spherical-errors} fails, the sandwich formula \eqref{eq-sandwich} still applies under \autoref{ass-basic}.
+\end{remark}
+
+\section{Estimating the Variance}
+
+Throughout this section, suppose $D=\sigma^2 I_n$ and $n>k$.
+Define
+\begin{align*}
+	P=X(X\T X)\inv X\T,
+	\qquad M=I_n-P.
+\end{align*}
+Since $MX=0$, the residual vector satisfies
+\begin{align}\label{eq-residual-error}
+	\widehat e=Y-X\widehat\beta=MY=Me.
+\end{align}
+The residuals are therefore not the original errors: they are the errors after removing their projection onto $X$.
+
+\subsection{Why the Analogue Estimator Is Biased}
+
+If we observed the errors, $n\inv\sum_i e_i^2$ would be an unbiased estimator of $\sigma^2$.
+Replacing errors with residuals gives
+\begin{align*}
+	\widetilde\sigma^2=\frac1n\sum_{i=1}^n\widehat e_i^2=\frac1n e\T M e.
+\end{align*}
+But fitting the regression removes some of the noise in the sample:
+\begin{align*}
+	\|e\|^2=\|Pe\|^2+\|Me\|^2.
+\end{align*}
+Using residuals as if they were errors therefore understates error variance on average.
+
+\begin{proposition}[The Degrees of Freedom Adjustment]\label{prop-error-variance}
+	Under \autoref{ass-basic} and $D=\sigma^2 I_n$,
+	\begin{align}\label{eq-expected-rss}
+		\E(\widehat e\T\widehat e\given X)=(n-k)\sigma^2.
+	\end{align}
+	Consequently,
+	\begin{align}
+		\E(\widetilde\sigma^2\given X)=\frac{n-k}{n}\sigma^2,
+		\qquad
+		\widehat\sigma^2\coloneqq\frac{\widehat e\T\widehat e}{n-k}
+	\end{align}
+	is conditionally and unconditionally unbiased for $\sigma^2$.
+\end{proposition}
+\begin{proof}
+	For a square matrix $B$, write $\operatorname{tr}(B)$ for the sum of its diagonal entries.
+	Using $M\T M=M$ and $\operatorname{tr}(AB)=\operatorname{tr}(BA)$,
+	\begin{align*}
+		\E(e\T M e\given X)
+		=\operatorname{tr}\!\left(M\E(ee\T\given X)\right)
+		=\sigma^2\operatorname{tr}(M).
+	\end{align*}
+	Also,
+	\begin{align*}
+		\operatorname{tr}(P)
+		&=\operatorname{tr}\!\left((X\T X)\inv X\T X\right)=k,\\
+		\operatorname{tr}(M)&=n-\operatorname{tr}(P)=n-k.
+	\end{align*}
+	This proves \eqref{eq-expected-rss}; dividing by $n-k$ gives unbiasedness.
+\end{proof}
+
+\begin{remark}[What are Degrees of Freedom?]
+	The residual vector satisfies the $k$ independent restrictions $X\T\widehat e=0$.
+	It lies in an $(n-k)$-dimensional space: these are its \emph{residual degrees of freedom}.
+	The trace calculation counts the same dimensions algebraically.
+	Estimating $k$ coefficients leaves $n-k$ directions of noise in the residuals.
+\end{remark}
+
+\begin{proposition}[An Unbiased Covariance Estimator]
+	Under \autoref{ass-basic} and $D=\sigma^2 I_n$, the matrix
+	\begin{align}
+		\widehat V=\widehat\sigma^2(X\T X)\inv
+	\end{align}
+	is conditionally unbiased for $\var(\widehat\beta\given X)$.
+\end{proposition}
+\begin{proof}
+	Conditional on $X$, the inverse matrix is fixed, so
+	\begin{align*}
+		\E(\widehat V\given X)
+		= \E(\widehat\sigma^2\given X)(X\T X)\inv
+		= \sigma^2(X\T X)\inv
+	\end{align*}
+	by \autoref{prop-error-variance}.
+\end{proof}
+
+\begin{remark}[Uncorrelated Errors and Correlated Residuals]
+	Even when $D=\sigma^2 I_n$,
+	the covariance matrix of the residuals need not be diagonal:
+	\begin{align}\label{eq-residual-covariance}
+		\var(\widehat e\given X)=MDM\T=\sigma^2M.
+	\end{align}
+	Thus, $\var(\widehat e_i\given X)=\sigma^2(1-P_{ii})$ and, for $i\ne j$,
+	$\cov(\widehat e_i,\widehat e_j\given X)=-\sigma^2P_{ij}$.
+	The off-diagonal entries need not vanish.
+	For an intercept-only regression, $P=\one\one\T/n$, so every distinct pair of residuals has covariance $-\sigma^2/n$.
+	Their sum must be zero: a positive residual must be offset by others.
+\end{remark}
+
+\begin{remark}[The Role of the Covariance Assumption]
+	With a general $D$,
+	\begin{align*}
+		\E(\widehat e\T\widehat e\given X)=\operatorname{tr}(MD).
+	\end{align*}
+	Dividing by $n-k$ need not estimate a common error variance, and $\widehat\sigma^2(X\T X)\inv$ need not estimate the sandwich covariance correctly.
+	The degrees of freedom correction does not by itself address heteroskedasticity or error correlation.
+\end{remark}
+
+\section{Prediction}
+
+For a new observation with regressor vector $X_{n+1}\in\reals^{k\times 1}$, suppose
+\begin{align*}
+	Y_{n+1}=X_{n+1}\T\beta+e_{n+1},
+	\qquad \widehat Y_{n+1}=X_{n+1}\T\widehat\beta.
+\end{align*}
+Hold $X_{n+1}$ fixed, and suppose the new error is independent of the training sample,
+with mean zero and variance $\sigma^2$.
+The prediction error decomposes as
+\begin{align}\label{eq-prediction-error}
+	Y_{n+1}-\widehat Y_{n+1}
+	=e_{n+1}-X_{n+1}\T(\widehat\beta-\beta).
+\end{align}
+The first term is the new observation's genuine error; the second comes from estimating the coefficient.
+
+\begin{proposition}[\Gls{mse} for Prediction]
+	Under \autoref{ass-basic}, $D=\sigma^2 I_n$, and the assumptions above,
+	for each training observation $i\in\{1,\ldots,n\}$ and the new observation,
+	\begin{align}\label{eq-prediction-mse}
+		\E[(Y_i-\widehat Y_i)^2\given X] &= \sigma^2-\sigma^2X_i\T(X\T X)\inv X_i,\\
+		\E[(Y_{n+1}-\widehat Y_{n+1})^2\given X] &= \sigma^2+\sigma^2X_{n+1}\T(X\T X)\inv X_{n+1}.
+	\end{align}
+\end{proposition}
+\begin{proof}
+	Let $\Delta=\widehat\beta-\beta=(X\T X)\inv X\T e$.
+	Conditional on $X$, $\E(\Delta\given X)=0$ and
+	$\var(\Delta\given X)=\sigma^2(X\T X)\inv$.
+	For a training observation, $Y_i-\widehat Y_i=e_i-X_i\T\Delta$.
+	Since $\cov(e,e_i\given X)$ has entry $\sigma^2$ at position $i$ and zero elsewhere,
+	\begin{align*}
+		\cov(e_i,X_i\T\Delta\given X)
+		=\sigma^2X_i\T(X\T X)\inv X_i.
+	\end{align*}
+	Thus,
+	\begin{align*}
+		\E[(Y_i-\widehat Y_i)^2\given X]
+		&=\var(e_i\given X)+\var(X_i\T\Delta\given X)\\
+		&\quad-2\cov(e_i,X_i\T\Delta\given X)\\
+		&=\sigma^2+\sigma^2X_i\T(X\T X)\inv X_i
+		-2\sigma^2X_i\T(X\T X)\inv X_i\\
+		&=\sigma^2-\sigma^2X_i\T(X\T X)\inv X_i.
+	\end{align*}
+	For the new observation, $e_{n+1}$ is independent of the training sample, so the covariance term is zero.
+	Both terms in \eqref{eq-prediction-error} have conditional mean zero, giving
+	\begin{align*}
+		\E[(Y_{n+1}-\widehat Y_{n+1})^2\given X]
+		&=\var(e_{n+1}\given X)+\var(X_{n+1}\T\Delta\given X)\\
+		&=\sigma^2+\sigma^2X_{n+1}\T(X\T X)\inv X_{n+1}.
+	\end{align*}
+\end{proof}
+
+\begin{remark}[Predicting an Outcome versus Its Mean]
+	For the conditional mean $X_{n+1}\T\beta$, the estimation \gls{mse} is just
+	$\sigma^2X_{n+1}\T(X\T X)\inv X_{n+1}$.
+	Predicting an individual outcome adds the irreducible error variance $\sigma^2$.
+	At a training regressor value $X_{n+1}=X_i$, the new-outcome prediction error has expected square $\sigma^2(1+P_{ii})$,
+	whereas the training residual has expected square $\sigma^2(1-P_{ii})$.
+	The training residual benefits from having used $Y_i$ to estimate the coefficient.
+\end{remark}
+
+\section{Omitted and Unnecessary Variables}
+
+Partition the design matrix as $X=[X_1\;X_2]$ with full column rank.
+Here $X_1$ and $X_2$ are blocks of columns, not individual observations.
+For the variance comparisons in this section, assume that the true errors satisfy
+$\E(e\given X)=0$ and $\var(e\given X)=\sigma^2 I_n$.
+We compare estimates on the same sample, conditional on the full $X$.
+Define
+\begin{align*}
+	M_2=I_n-X_2(X_2\T X_2)\inv X_2\T.
+\end{align*}
+
+\subsection{Omitting Relevant Variables}
+
+Suppose the true model is
+\begin{align*}
+	Y=X_1\beta_1+X_2\beta_2+e,
+\end{align*}
+but we regress $Y$ only on $X_1$.
+
+\paragraph{Bias.}
+
+The omitted contribution becomes part of the regression error $u=X_2\beta_2+e$.
+The short-regression estimate satisfies
+\begin{align}\label{eq-omitted-variable-bias}
+	\widetilde\beta_1
+	=(X_1\T X_1)\inv X_1\T Y
+	=\beta_1+(X_1\T X_1)\inv X_1\T X_2\beta_2
+	+(X_1\T X_1)\inv X_1\T e.
+\end{align}
+Its conditional bias is therefore
+\begin{align}
+	\E(\widetilde\beta_1\given X)-\beta_1
+	=(X_1\T X_1)\inv X_1\T X_2\beta_2.
+\end{align}
+Bias arises when the omitted contribution $X_2\beta_2$ projects onto the included regressors.
+It disappears if $\beta_2=0$ or $X_1\T X_2=0$, though other cancellations are also possible.
+
+\begin{example}[The Usual Omitted Variable Bias Formula]
+	Let the true model be $Y_i=\alpha+\beta x_i+\gamma z_i+e_i$,
+	and regress $Y_i$ on an intercept and $x_i$ alone.
+	Conditional on the observed $x_i$ and $z_i$, the slope's bias is
+	\begin{align*}
+		\gamma\frac{\sum_i(x_i-\bar x)(z_i-\bar z)}{\sum_i(x_i-\bar x)^2}.
+	\end{align*}
+	For there to be omitted variable bias it must be the case that
+	(1) $z_i$ affects the outcome, i.e., $\gamma\neq0$ and
+	(2) it is related to the included regressor, i.e., $\sum_{i=1}^{n}(x_i-\bar x)(z_i-\bar z)\neq0$.
+\end{example}
+
+\paragraph{Variance.}
+
+Conditional on the full $X$, the omitted contribution is fixed, so
+\begin{align}
+	\var(\widetilde\beta_1\given X)&=\sigma^2(X_1\T X_1)\inv,\\
+	\var(\widehat\beta_1\given X)&=\sigma^2(X_1\T M_2X_1)\inv,
+\end{align}
+where $\widehat\beta_1$ comes from the full regression.
+The second identity follows by the \gls{fwl} theorem.
+Since $X_1\T M_2X_1\preceq X_1\T X_1$, inversion reverses the ordering:
+\begin{align}\label{eq-variable-variance-comparison}
+	\var(\widetilde\beta_1\given X)
+	\preceq\var(\widehat\beta_1\given X).
+\end{align}
+\autoref{sec-covariance-ordering} explains this covariance ordering.
+Omitting variables can reduce variance while introducing bias.
+This comparison uses the same true $\sigma^2$ in both models;
+it does not say that the short regression's reported standard errors correctly measure uncertainty about $\beta_1$.
+
+\begin{remark}[When are the Two Equal?]
+	For $\sigma^2>0$, the variance comparison \eqref{eq-variable-variance-comparison} is an equality if and only if $X_1\T M_2X_1=X_1\T X_1$.
+	To see when this occurs, note that
+	\begin{align*}
+		X_1\T X_1-X_1\T M_2X_1
+		=(X_2\T X_1)\T(X_2\T X_2)\inv(X_2\T X_1).
+	\end{align*}
+	Since $(X_2\T X_2)\inv$ is positive definite, this is zero exactly when $X_1\T X_2=0$.
+	Thus, equality holds when the two blocks are orthogonal:
+	controlling for $X_2$ removes no variation from $X_1$.
+	Here orthogonality refers to sample cross-products; it is not the same as zero population correlation.
+\end{remark}
+
+\subsection{Including Unnecessary Variables}
+
+Now suppose the true model is $Y=X_1\beta_1+e$, but we also include $X_2$.
+The expanded model is correctly specified with $\beta_2=0$.
+
+\paragraph{Bias.}
+
+Both the short and full estimates of $\beta_1$ are conditionally unbiased
+because both models are correctly specified and $\E(e\given X)=0$.
+
+\paragraph{Variance.}
+
+If $X_2$ and $X_1$ are not orthogonal,
+then the inclusion of $X_2$ ``soaks up'' some usable variation in $X_1$,
+i.e., the relation \eqref{eq-variable-variance-comparison} still holds.
+This means that by including unnecessary variables, we can increase the variance of the estimate of $\beta_1$.
+
+\subsection{The Bias-Variance Tradeoff}
+
+To compare a biased estimate with an unbiased one, we need a measure that accounts for both bias and dispersion.
+\Gls{mse} measures the expected squared distance from the parameter.
+
+\begin{proposition}[\Gls{mse} Decomposition]
+	For a scalar estimator $\widetilde\theta$ of a fixed parameter $\theta$, we have
+	\begin{align}
+		\E[(\widetilde\theta-\theta)^2\given X]
+		=\var(\widetilde\theta\given X)
+		+\left(\E(\widetilde\theta\given X)-\theta\right)^2.
+	\end{align}
+\end{proposition}
+\begin{proof}
+	Consider the following:
+	\begin{align}
+		\widetilde\theta-\theta
+		= (\widetilde\theta-\E(\widetilde\theta\given X))+(\E(\widetilde\theta\given X)-\theta).
+	\end{align}
+	Square both sides and take conditional expectations and we have
+	\begin{align*}
+		\E[(\widetilde\theta-\theta)^2\given X]
+		&= \E[(\widetilde\theta-\E(\widetilde\theta\given X))^2\given X]
+		+ (\E(\widetilde\theta\given X)-\theta)^2\\
+		&\quad+ 2\underbrace{\E[(\widetilde\theta-\E(\widetilde\theta\given X))(\E(\widetilde\theta\given X)-\theta)\given X]}_{=0} \\
+		&= \var(\widetilde\theta\given X)
+		+ (\E(\widetilde\theta\given X)-\theta)^2.
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{remark}[Vector Estimators]
+	For a vector estimator we can apply the same decomposition component-by-component.
+	For example, we have
+	\begin{align*}
+		\E[\|\widetilde\beta-\beta\|^2\given X]
+		=\operatorname{tr}[\var(\widetilde\beta\given X)]+\|\text{bias}\|^2
+	\end{align*}
+	where $\text{bias}=\E(\widetilde\beta\given X)-\beta$.
+\end{remark}
+
+\begin{remark}[The Bias-Variance Tradeoff]
+	A biased estimator can have smaller \gls{mse} if the variance reduction outweighs squared bias.
+	Neither including every available variable nor choosing the smallest model is always best.
+	This motivates us to define \emph{regularization} methods that explore this tradeoff.
+\end{remark}
+
+\section{Ridge Regression}
+
+Ridge regression adds a penalty for large coefficients to the least squares objective.
+This stabilizes estimation by shrinking the coefficient directions that \gls{ols} estimates least precisely.
+The multicollinearity and singular value interpretation is developed in \autoref{sec-svd}.
+
+\begin{definition}[Ridge Regression]
+	For $\lambda>0$, the ridge estimator minimizes
+	\begin{align}\label{eq-ridge-loss}
+		\widehat\beta_\lambda
+		=\arg\min_{b\in\reals^k}
+		\left\{\|Y-Xb\|^2+\lambda\|b\|^2\right\}.
+	\end{align}
+	Its solution is
+	\begin{align}\label{eq-ridge-solution}
+		\widehat\beta_\lambda=(X\T X+\lambda I_k)\inv X\T Y.
+	\end{align}
+\end{definition}
+\begin{proof}
+	The first order condition is $(X\T X+\lambda I_k)b=X\T Y$.
+	For $\lambda>0$, the coefficient matrix is positive definite even if $X$ is rank deficient,
+	so the minimizer is unique.
+\end{proof}
+
+\begin{remark}[The Intercept and Units]
+	Equation~\eqref{eq-ridge-loss} penalizes every coefficient, including an intercept if present.
+	Usually we leave the intercept unpenalized, center the outcome and regressors, and apply ridge to the slopes.
+	The penalty also depends on regressor units, so scaling the regressors is part of specifying the estimator.
+	The calculations below use the penalty in \eqref{eq-ridge-loss} and a fixed $\lambda$.
+\end{remark}
+
+\begin{proposition}[Ridge Bias and Variance]\label{prop-ridge}
+	Under \autoref{ass-basic} and $D=\sigma^2 I_n$, for fixed $\lambda>0$,
+	write $Q=X\T X$ and $B_\lambda=(Q+\lambda I_k)\inv$.
+	\begin{align}
+		\E(\widehat\beta_\lambda\given X)-\beta
+		&=-\lambda B_\lambda\beta,\\
+		\var(\widehat\beta_\lambda\given X)
+		&=\sigma^2B_\lambda Q B_\lambda.
+	\end{align}
+	In particular,
+	$\var(\widehat\beta_\lambda\given X)\preceq\var(\widehat\beta\given X)$.
+\end{proposition}
+\begin{proof}
+	Substitute $Y=X\beta+e$ into the ridge formula:
+	\begin{align*}
+		\widehat\beta_\lambda
+		=B_\lambda X\T(X\beta+e)
+		=B_\lambda Q\beta+B_\lambda X\T e.
+	\end{align*}
+	Since $B_\lambda\inv=Q+\lambda I_k$, we have
+	\begin{align*}
+		B_\lambda Q
+		=B_\lambda(B_\lambda\inv-\lambda I_k)
+		=I_k-\lambda B_\lambda.
+	\end{align*}
+	Using $\E(e\given X)=0$, the conditional bias is therefore
+	\begin{align*}
+		\E(\widehat\beta_\lambda\given X)-\beta
+		=(B_\lambda Q-I_k)\beta+B_\lambda X\T\E(e\given X)
+		=-\lambda B_\lambda\beta.
+	\end{align*}
+	For the variance, $B_\lambda Q\beta$ is fixed conditional on $X$.
+	Also, $B_\lambda$ is symmetric because $Q+\lambda I_k$ is symmetric.
+	Thus,
+	\begin{align*}
+		\var(\widehat\beta_\lambda\given X)
+		&=\var(B_\lambda X\T e\given X)\\
+		&=B_\lambda X\T\var(e\given X)X B_\lambda\T
+		=\sigma^2B_\lambda X\T X B_\lambda
+		=\sigma^2B_\lambda Q B_\lambda.
+	\end{align*}
+	To compare with \gls{ols}, insert $I_k=B_\lambda B_\lambda\inv=B_\lambda\inv B_\lambda$ around $Q\inv$ and factor out $B_\lambda$:
+	\begin{align*}
+		\var(\widehat\beta\given X)-\var(\widehat\beta_\lambda\given X)
+		&=\sigma^2(Q\inv-B_\lambda Q B_\lambda)\\
+		&=\sigma^2B_\lambda\big[(Q+\lambda I_k)Q\inv(Q+\lambda I_k)-Q\big]B_\lambda\\
+		&=\sigma^2B_\lambda\big[Q+2\lambda I_k+\lambda^2Q\inv-Q\big]B_\lambda\\
+		&=\sigma^2B_\lambda(2\lambda I_k+\lambda^2Q\inv)B_\lambda.
+	\end{align*}
+	Since $Q\inv$ is positive definite and $\lambda>0$, the middle matrix $2\lambda I_k+\lambda^2Q\inv$ is positive definite.
+	Multiplying it on the left by $B_\lambda$ and on the right by $B_\lambda\T=B_\lambda$ preserves positive semidefiniteness,
+	proving the covariance ordering.
+\end{proof}
+
+\begin{remark}[Does Ridge Improve \gls{mse}?]
+	With the notation in \autoref{prop-ridge}, the conditional \glspl{mse} are
+	\begin{align*}
+		R_{\mathrm{OLS}}\coloneqq\E[\|\widehat\beta-\beta\|^2\given X]
+		&=\sigma^2\operatorname{tr}(Q\inv),\\
+		R_\lambda\coloneqq\E[\|\widehat\beta_\lambda-\beta\|^2\given X]
+		&=\sigma^2\operatorname{tr}(B_\lambda Q B_\lambda)
+		+\lambda^2\|B_\lambda\beta\|^2.
+	\end{align*}
+	Their difference is
+	\begin{align*}
+		R_\lambda-R_{\mathrm{OLS}}
+		=\underbrace{\lambda^2\|B_\lambda\beta\|^2}_{\text{squared bias}}
+		-\underbrace{\lambda\sigma^2\operatorname{tr}\!\left[B_\lambda(2I_k+\lambda Q\inv)B_\lambda\right]}_{\text{variance reduction}}.
+	\end{align*}
+	Ridge improves \gls{mse} exactly when variance reduction exceeds squared bias.
+	For $\sigma^2>0$, $\lambda\|\beta\|^2<2\sigma^2$ is sufficient:
+	using $\|B_\lambda\beta\|^2\le\|\beta\|^2\operatorname{tr}(B_\lambda^2)$ gives
+	\begin{align*}
+		R_\lambda-R_{\mathrm{OLS}}
+		\le\lambda\big(\lambda\|\beta\|^2-2\sigma^2\big)\operatorname{tr}(B_\lambda^2)<0.
+	\end{align*}
+	Thus, a sufficiently small positive penalty improves coefficient \gls{mse} for any fixed $X$ and $\beta$.
+	The bound depends on unknown parameters; not every penalty improves \gls{mse}.
+	Ridge is generally biased, so this is consistent with \nameref{thm-gauss-markov}.
+\end{remark}
+
+\section{From Moments to Finite Sample Inference}
+
+Knowing the mean and variance of $\widehat\beta$ does not determine its full distribution.
+For example, an additional normality assumption gives the exact conditional law:
+\begin{align}
+	e\given X&\sim\normaldistribution(0,\sigma^2 I_n),\label{eq-normal-errors}\\
+	\widehat\beta\given X&\sim\normaldistribution\!\left(\beta,\sigma^2(X\T X)\inv\right).\notag
+\end{align}
+The usual exact normal and $t$ inference results rely on this additional distributional assumption.
+Large sample theory instead derives an approximate distribution for the estimator as the sample size grows.
+Under suitable sampling and moment conditions, this permits approximate inference without requiring exactly normal errors.
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+\clearpage
+\appendix
+\section{How to Compare Covariance Matrices}\label{sec-covariance-ordering}
+
+\begin{definition}[Positive Semidefinite Ordering]
+	A symmetric matrix $B$ is \emph{positive semidefinite} if $a\T Ba\ge0$ for every vector $a$.
+	For symmetric matrices $V_1$ and $V_2$ of the same size, write
+	\begin{align*}
+		V_1\preceq V_2
+	\end{align*}
+	if $V_2-V_1$ is positive semidefinite.
+\end{definition}
+
+\begin{remark}
+	For covariance matrices, this means that every linear combination has at least as much variance under $V_2$:
+	\begin{align*}
+		a\T V_1a\le a\T V_2a\quad\text{for every }a.
+	\end{align*}
+	In particular, every diagonal variance is larger or equal, but that condition alone does not establish the ordering.
+	Any matrix $CC\T$ is positive semidefinite because $a\T CC\T a=\|C\T a\|^2$.
+	This is the comparison used in the Gauss-Markov proof.
+\end{remark}
+
+\begin{proposition}[Inversion Reverses the Ordering]
+	If $B$ and $C$ are positive definite and $B\preceq C$, then $C\inv\preceq B\inv$.
+\end{proposition}
+\begin{proof}
+	Let $H=B^{-1/2}CB^{-1/2}$, where the symmetric square root is obtained by taking square roots of the eigenvalues.
+	Then $H\succeq I$, so its eigenvalues are at least one and $H\inv\preceq I$.
+	Therefore,
+	\begin{align*}
+		C\inv=B^{-1/2}H\inv B^{-1/2}\preceq B\inv.
+	\end{align*}
+	The last step uses the fact that multiplying a positive semidefinite matrix on the left by $R$ and on the right by $R\T$ preserves positive semidefiniteness.
+\end{proof}
+
+In the variable-selection comparison, $I_n-M_2$ is a projection matrix, so
+\begin{align*}
+	X_1\T X_1-X_1\T M_2X_1
+	=X_1\T(I_n-M_2)X_1\succeq0.
+\end{align*}
+Both cross-product matrices are positive definite under full column rank of $[X_1\;X_2]$.
+The inverse ordering therefore gives \eqref{eq-variable-variance-comparison}.
+
+\section{Multicollinearity and the Singular Value Decomposition}\label{sec-svd}
+
+\subsection{What Makes \glsentryshort{ols} Unstable?}
+
+Exact multicollinearity means that $X$ lacks full column rank.
+Near multicollinearity means that, after appropriate scaling, some columns are nearly linear combinations of the others.
+The coefficients may then be very imprecisely estimated even when the fitted values are stable.
+
+For full-column-rank $X$, write its full singular value decomposition as
+\begin{align}\label{eq-svd}
+	X=USV\T,
+	\qquad S=\begin{bmatrix}
+		\diag(s_1,\ldots,s_k)\\
+		0_{(n-k)\times k}
+	\end{bmatrix},
+\end{align}
+where $U\in\reals^{n\times n}$, $S\in\reals^{n\times k}$, and $V\in\reals^{k\times k}$,
+with $s_1\ge\cdots\ge s_k>0$.
+Both $U$ and $V$ are orthogonal matrices:
+$U\T U=UU\T=I_n$ and $V\T V=VV\T=I_k$.
+We use $S$ rather than $D$ to distinguish singular values from the error covariance matrix.
+
+\begin{remark}[The Left Singular Vectors]
+	The columns $u_1,\ldots,u_n$ of $U$ form an orthonormal basis for $\reals^n$.
+	The first $k$ span the column space of $X$.
+	The remaining $n-k$ are orthogonal to that space and do not contribute to $X$, because the corresponding rows of $S$ are zero.
+\end{remark}
+
+Since $S$ is rectangular, we use $S\T S$, not $S^2$:
+\begin{align*}
+	S\T S&=\diag(s_1^2,\ldots,s_k^2),\\
+	X\T X&=V(S\T S)V\T,\\
+	(X\T X)\inv&=V(S\T S)\inv V\T,\\
+	\widehat\beta&=V(S\T S)\inv S\T U\T Y.
+\end{align*}
+The columns $v_j$ of $V$ are eigenvectors of $X\T X$, with eigenvalues $s_j^2$.
+For $j=1,\ldots,k$, the corresponding column $u_j$ of $U$ gives
+\begin{align}\label{eq-svd-coefficients}
+	v_j\T\widehat\beta=\frac{u_j\T Y}{s_j},
+	\qquad
+	\var(v_j\T\widehat\beta\given X)=\frac{\sigma^2}{s_j^2}
+\end{align}
+under $D=\sigma^2 I_n$.
+Small singular values amplify the noise when recovering coefficients.
+
+\begin{remark}[Condition Indices and Scaling]
+	The condition index for direction $j$ is $s_1/s_j$;
+	the largest is the condition number $\kappa(X)=s_1/s_k$.
+	Equivalently, it is the square root of the ratio of the largest and smallest eigenvalues of $X\T X$.
+	A large value indicates a poorly determined coefficient direction.
+	These quantities depend on units, so compare suitably scaled regressor columns rather than treating different measurement units as evidence of collinearity.
+\end{remark}
+
+\begin{remark}[Projection versus Recovering Coefficients]
+	The projection keeps the first $k$ left-singular-vector directions and removes the remaining $n-k$:
+	\begin{align*}
+		P=U\begin{bmatrix}I_k&0\\0&0_{(n-k)\times(n-k)}\end{bmatrix}U\T.
+	\end{align*}
+	Thus, the fitted vector and residual vector are
+	\begin{align*}
+		\widehat Y&=PY=\sum_{j=1}^k u_j(u_j\T Y),\\
+		\widehat e&=MY=\sum_{j=k+1}^n u_j(u_j\T Y).
+	\end{align*}
+	Thus, \gls{ols} keeps the components of $Y$ along the orthonormal directions spanning the columns of $X$.
+	Recovering coefficients requires an additional division by $s_j$ and rotation by $V$.
+	It is this division, not the projection itself, that becomes unstable when $s_j$ is small.
+\end{remark}
+
+\subsection{Ridge in Singular-Value Directions}
+
+The singular value decomposition gives
+\begin{align}\label{eq-ridge-svd}
+	\widehat\beta_\lambda
+	&=V(S\T S+\lambda I_k)\inv S\T U\T Y\\
+	&=\sum_{j=1}^k v_j\frac{s_j}{s_j^2+\lambda}(u_j\T Y).
+\end{align}
+Compared with \eqref{eq-svd-coefficients}, ridge multiplies the \gls{ols} coefficient in direction $v_j$ by
+\begin{align*}
+	\frac{s_j^2}{s_j^2+\lambda}.
+\end{align*}
+The smallest singular-value directions receive the strongest shrinkage.
+For the fitted values,
+\begin{align*}
+	\widehat Y_\lambda
+	=\sum_{j=1}^k u_j\frac{s_j^2}{s_j^2+\lambda}(u_j\T Y).
+\end{align*}
+Unlike the \gls{ols} projection, ridge retains only a fraction of each outcome component in the regressor space.
+
+\begin{remark}[Variance and \gls{mse} by Direction]
+	Under \autoref{ass-basic} and $D=\sigma^2 I_n$, write $\theta_j=v_j\T\beta$.
+	For fixed $\lambda>0$,
+	\begin{align*}
+		\E(v_j\T\widehat\beta_\lambda\given X)-\theta_j
+		&=-\frac{\lambda\theta_j}{s_j^2+\lambda},\\
+		\var(v_j\T\widehat\beta_\lambda\given X)
+		&=\frac{\sigma^2s_j^2}{(s_j^2+\lambda)^2}
+		\le\frac{\sigma^2}{s_j^2},\\
+		\E[(v_j\T\widehat\beta_\lambda-\theta_j)^2\given X]
+		&=\frac{\lambda^2\theta_j^2+\sigma^2s_j^2}{(s_j^2+\lambda)^2}.
+	\end{align*}
+	These formulas show the variance reduction and squared bias separately in each direction.
+\end{remark}
+
+\end{document}

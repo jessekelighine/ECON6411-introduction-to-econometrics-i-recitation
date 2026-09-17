@@ -1,0 +1,176 @@
+%!TEX program = xelatex
+\documentclass[letterpaper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[letterpaper,vmargin={1in,1.5in},hmargin={1in,1in}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation: Prerequisite Review Questions}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\maketitle
+
+\section{Probability and Statistics}
+
+\begin{enumerate}
+	\item(\textsc{Random Variable})
+		Suppose you flip a fair coin that can land either heads ($H$) or tails ($T$).
+		If it lands heads, the value $1$ is assigned as the outcome;
+		if it lands tails, the value $-1$ is assigned.
+		Let $X$ be the random variable representing the outcome.
+		\begin{enumerate}
+			\item
+				What is the sample space of the experiment?
+			\item
+				Taking the event space to be the power set of the sample space,
+				what are all the possible events?
+			\item
+				What is the probability of each event?
+			\item
+				What is a random variable?
+				Define $X$ as a function on the sample space.
+		\end{enumerate}
+
+	\item(\textsc{Joint, Marginal, and Conditional Distributions})
+		The joint probability mass function of $(X,Y)$ is given by
+		\begin{center}
+			\begin{tabular}{c|cc}
+				& $Y=0$ & $Y=1$ \\
+				\hline
+				$X=0$ & $0.10$ & $0.20$ \\
+				$X=1$ & $0.30$ & $0.40$
+			\end{tabular}
+		\end{center}
+		\begin{enumerate}
+			\item
+				Verify that the table defines a valid joint distribution.
+			\item
+				Find the marginal distributions of $X$ and $Y$.
+			\item
+				Find $\Pr(X=1\given Y=1)$ and $\Pr(Y=1\given X=0)$.
+			\item
+				Compute $\E(X)$, $\var(X)$, $\E(Y)$, and $\var(Y)$.
+			\item
+				Compute $\cov(X,Y)$.
+				Are $X$ and $Y$ independent?
+		\end{enumerate}
+	\item(\textsc{Continuous Random Variables})
+		Suppose that the random variable $U$ has probability density function
+		\begin{align}
+			f_U(u)=
+			\begin{cases}
+				2u, & 0\leq u\leq 1,\\
+				0, & \text{otherwise}.
+			\end{cases}
+		\end{align}
+		\begin{enumerate}
+			\item
+				Verify that $f_U$ is a valid \gls{pdf}.
+			\item
+				Derive the \gls{cdf} $F_U(u)$, including its values outside $[0,1]$.
+			\item
+				Compute $\Pr(1/4<U\leq 3/4)$ using both $f_U$ and $F_U$.
+			\item
+				What is $\Pr(U=1/2)$?
+			\item
+				Find the median $m$ satisfying $F_U(m)=1/2$.
+			\item
+				Compute $\E(U)$, $\E(U^2)$, and $\var(U)$.
+		\end{enumerate}
+		Now suppose that the random variable $V$ has \gls{cdf}
+		\begin{align}
+			F_V(v)=
+			\begin{cases}
+				1-e^{-v}, & v\geq 0, \\
+				0, & \text{otherwise.}
+			\end{cases}
+		\end{align}
+		\begin{enumerate}[resume]
+			\item
+				Derive the \gls{pdf} $f_V(v)$.
+			\item
+				Compute $\Pr(V>2)$.
+			\item
+				Find the $90$th percentile of $V$.
+			\item
+				Compute $\E(V)$, $\E(V^2)$, and $\var(V)$.
+		\end{enumerate}
+\end{enumerate}
+
+\section{Linear Algebra and Matrix Algebra}
+
+Let
+\begin{align}
+	A=
+	\begin{pmatrix}
+		1 & 0 \\
+		1 & 1 \\
+		1 & 2
+	\end{pmatrix}.
+\end{align}
+
+\begin{enumerate}
+	\item
+		What are the dimensions of $A$ and $A\T$? $A\T$ denotes the transpose of $A$.
+	\item
+		What is the rank of $A$?
+	\item
+		Compute $A\T A$.
+	\item
+		Is $A\T A$ invertible?
+		If so, compute $(A\T A)\inv$.
+	\item
+		What property of $A$ guarantees that $A\T A$ is invertible?
+\end{enumerate}
+
+\section{Calculus: Taylor Expansions}
+
+Let $g(x)=\log(x)$ for $x>0$.
+
+\begin{enumerate}
+	\item
+		Compute $g'(x)$, $g''(x)$, and $g'''(x)$.
+	\item
+		State precisely what $o(h^k)$ and $O(h^k)$ mean as $h\to0$ for any fixed positive integer $k$.
+		Also explain intuitively what these notations mean.
+	\item
+		Write the first-order and second-order Taylor expansions of $g(x)$ around $x=1$.
+		Precisely, define $h=x-1$ and write the Taylor expansions of $g(1+h)$.
+		For each expansion, express the remainder using both little-$o$ notation and the sharp big-$O$ order.
+	\item
+		Use both expansions to approximate $\log(1.1)$.
+	\item
+		Which approximation is more accurate?
+		Relate the approximation errors to the remainder orders.
+\end{enumerate}
+
+\section{Calculus: Optimization}
+
+Let $q:\reals^2\to\reals$ be defined by
+\begin{align}
+	q(x,y)=4x+2y-x^2-xy-y^2.
+\end{align}
+
+\begin{enumerate}
+	\item(\textsc{Optimality Conditions})
+		\begin{enumerate}
+			\item
+				State the \emph{first-order necessary condition} for an interior local maximum of a differentiable function.
+			\item
+				State the \emph{second-order sufficient condition} for an interior point to be a local maximum of a twice-differentiable function.
+		\end{enumerate}
+	\item
+		Compute the gradient of $q$ and solve the first-order conditions.
+	\item
+		Compute the Hessian of $q$ and determine whether it is positive definite, negative definite, or indefinite.
+	\item
+		Use the second-order condition to classify the stationary point.
+		Is it also the unique global maximizer?
+\end{enumerate}
+
+\end{document}

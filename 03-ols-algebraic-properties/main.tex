@@ -1,0 +1,508 @@
+%!TEX program = xelatex
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Note: \glsentryshort{ols} Algebraic Properties}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+% We need to cover:
+%
+% # Define what OLS is
+%
+% # Two approaches to OLS
+%
+% two approaches leading to the same estimator, and then introduce the projection interpretation of OLS, both sample and popualtion
+%
+% 1. Loss function approach
+%     - Show clearly the sample/population rank condition for identification
+% 2. Analogue approach: Method of Moments
+%     - Conditional mean restriction: interpret this in terms of both sample and population
+%
+% # Projection interpretation
+%
+% Introduce the projection and annihilation matrices, and show how they are related to the OLS estimator.
+% Then introduce the geometric interpretation of OLS.
+%
+% # FWL Theorem
+%
+% First define and proof and explain, then introduce the graphical interpretation of FWL theorem.
+%
+% # Goodness of fit
+%
+% - R squred: Define, explain, and interpret geometrically (Pythagorean theorem)
+% - Adjusted R squared: Define, explain, and interpret geometrically (Pythagorean theorem)
+% - relation to cosine similarity: Define, explain, and interpret geometrically (Pythagorean theorem)
+
+\maketitle
+
+\noindent
+% In practice, we do not know the population distribution of $(Y_i,X_i)$, so we cannot compute the population least squares coefficient.
+We observe a sample $\{(Y_i,X_i)\}_{i=1}^n$,
+where $Y_i$ is a scalar and $X_i=(X_{i1},\ldots,X_{ik})\T$ is a vector of regressors.
+We stack the outcomes as $Y=(Y_1,\ldots,Y_n)\T\in\reals^n$
+and the regressors as $X=[X_1\;\cdots\;X_n]\T\in\reals^{n\times k}$,
+so the $i$-th row of $X$ is $X_i\T$.
+The matrix $X$ is sometimes known as the \emph{design matrix}.
+The algebraic results below hold for any observed sample:
+they do not require \gls{iid} sampling or a correctly specified conditional mean.
+
+\section{Two Approaches to \glsentryshort{ols}}
+
+\begin{definition}[\glsentrylong{ols}]\label{def-ols}
+	The \gls{ols} estimator is a solution to
+	\begin{align}\label{eq-ols-objective}
+		\widehat\beta\in\arg\min_{b\in\reals^k}\frac{1}{n}\sum_{i=1}^n(Y_i-X_i\T b)^2.
+	\end{align}
+	The objective \eqref{eq-ols-objective} can also be written as $n\inv(Y-X b)\T(Y-X b)$.
+\end{definition}
+
+\subsection{The Loss Function Approach}
+
+In this approach, we directly solve for the minimizer of the sample least squares objective \eqref{eq-ols-objective}.
+
+% To find the \gls{ols} coefficient to minimize \eqref{eq-ols-objective},
+% we can directly solve for the first order condition:
+% \begin{align}\label{eq-sample-first-order-condition}
+% 	\frac{1}{n}\sum_{i=1}^n X_i(Y_i-X_i\T\widehat\beta)=0.
+% \end{align}
+
+\begin{theorem}[\gls{ols} Estimator]\label{thm-sample-least-squares}
+	Suppose that $X$ has full column rank $k$.
+	Then the \gls{ols} estimator is unique and equals
+	\begin{align}\label{eq-ols-formula}
+		\widehat\beta
+		&=(X\T X)\inv X\T Y\\
+		&=\left(\frac{1}{n}\sum_{i=1}^nX_iX_i\T\right)\inv
+		\left(\frac{1}{n}\sum_{i=1}^nX_iY_i\right).
+	\end{align}
+	Equivalently, it is the unique solution to the equations
+	\begin{align}\label{eq-sample-normal-equations}
+		X\T(Y-X\widehat\beta)=0.
+	\end{align}
+\end{theorem}
+\begin{proof}
+	The gradient of the sample objective is
+	\begin{align}
+		-\frac2n \sum_{i=1}^n X_iY_i + \frac2n \sum_{i=1}^n X_iX_i\T b
+		=-\frac2n X\T Y + \frac2n X\T X b.
+	\end{align}
+	Setting it equal to zero gives
+	\begin{align}
+		\frac1n \sum_{i=1}^{n} X_i(Y_i-X_i\T\widehat\beta)
+		=\frac1n X\T(Y-X\widehat\beta)=0.
+	\end{align}
+	This yields the desired solution
+	\begin{align}
+		\begin{aligned}
+			\widehat\beta
+			=\left(\frac1n\sum_{i=1}^{n}X_iX_i\T\right)\inv
+			\left(\frac1n\sum_{i=1}^{n}X_iY_i\right)
+			=(X\T X)\inv X\T Y.
+		\end{aligned}
+	\end{align}
+	Full column rank makes $X\T X$ positive definite,
+	so the objective is strictly convex and its unique minimizer is given by equation~\eqref{eq-ols-formula}.
+\end{proof}
+
+\begin{remark}[The Sample Counterpart of Population Regression]
+	For population statements, assume that $Y_i$ and the components of $X_i$ have finite second moments.
+	The population regression coefficient minimizes expected squared loss:
+	\begin{align}
+		\beta\in\arg\min_{b\in\reals^k}\E[(Y_i-X_i\T b)^2],
+	\end{align}
+	The sample objective \eqref{eq-ols-objective} replaces this expectation by an average over the observed data.
+\end{remark}
+
+\begin{remark}[Population Identification and Sample Uniqueness]
+	In the population, $Q\coloneqq\E(X_iX_i\T)$ being nonsingular identifies a unique coefficient $\beta$.
+	In the sample, full column rank of $X$ makes $X\T X$ nonsingular and gives a unique estimate $\widehat\beta$.
+	This requires $n\ge k$ and no exact linear dependence among the columns of $X$.
+	The two conditions are different: even when $Q$ is nonsingular,
+	a particular sample may lack enough variation to give full column rank.
+	If $Xv=0$ for some nonzero $v$, then $b$ and $b+v$ give the same fitted vector.
+\end{remark}
+
+\subsection{The Analogue Approach: Method of Moments}
+
+The \emph{method of moments} replaces population moment equations by sample moment equations.
+The population least squares coefficient satisfies the orthogonality conditions
+\begin{align}
+	\E(X_i u_i)=\E[X_i(Y_i-X_i\T\beta)]=0
+	\quad\text{where}\quad
+	u_i\coloneqq Y_i-X_i\T\beta.
+\end{align}
+Instead of minimizing a loss function, we can start from these equations
+and replace the expectation by a sample average:
+\begin{align}\label{eq-sample-orthogonality}
+	\frac{1}{n}\sum_{i=1}^n X_i(Y_i-X_i\T b)=0.
+\end{align}
+These are exactly the sample normal equations.
+Under full column rank, solving them gives the same \gls{ols} estimator as the loss function approach.
+
+\begin{remark}[Conditional Mean versus Orthogonality]
+	A model may impose the stronger restriction $\E(u_i\given X_i)=0$:
+	the error averages to zero at each regressor value, so $\E(Y_i\given X_i)=X_i\T\beta$.
+	This implies $\E(X_i u_i)=0$, but the converse need not hold.
+	The population least squares coefficient satisfies orthogonality even when the conditional mean is nonlinear.
+	In the sample, \gls{ols} sets $n\inv\sum_i X_i\widehat u_i=0$
+	where $\widehat u_i=Y_i-X_i\T\widehat\beta$ by construction.
+	Similar to the population regression,
+	it does not generally set the average residual to zero separately at each regressor value.
+\end{remark}
+
+\section{Projection Interpretation}
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[scale=1]{figures/ols.pdf}
+	\caption{The Geometry of \gls{ols}.}
+	\label{fig-ols}
+\end{figure}
+
+For the matrix formulae that follow, assume that $X$ has full column rank.
+Write $I_n$ for the $n\times n$ identity matrix and $\|a\|^2=a\T a$ for squared Euclidean length.
+
+\begin{definition}[Fitted Values and Residuals]\label{def-fitted-values-residuals}
+	The fitted value for observation $i$ is $\widehat Y_i\coloneqq X_i\T\widehat\beta$,
+	and its residual is $\widehat u_i\coloneqq Y_i-\widehat Y_i$.
+	In vector form,
+	\begin{align}
+		\widehat Y=X\widehat\beta,
+		\qquad \widehat u\coloneqq(\widehat u_1,\ldots,\widehat u_n)\T=Y-\widehat Y.
+	\end{align}
+\end{definition}
+
+\begin{proposition}[Sample Orthogonality]\label{prop-sample-orthogonality}
+	The \gls{ols} residuals satisfy
+	\begin{align}
+		X\T\widehat u=0
+		\quad\text{and}\quad
+		\widehat Y\T\widehat u=0.
+	\end{align}
+	If an intercept is included, then
+	\begin{align}
+		\sum_{i=1}^n\widehat u_i=0,
+	\end{align}
+	and the sample average of the fitted values equals the sample average of the outcomes.
+\end{proposition}
+\begin{proof}
+	The first equality follows from $\widehat\beta$ being the solution to \eqref{eq-sample-orthogonality}:
+	\begin{align}
+		X\T\widehat u
+		=X\T(Y-X\widehat\beta)
+		=X\T Y-X\T X(X\T X)\inv X\T Y
+		=X\T Y-X\T Y
+		=0.
+	\end{align}
+	The second equality follows by substituting $\widehat Y=X\widehat\beta$ and using the first equality:
+	\begin{align}
+		\widehat Y\T\widehat u
+		=(X\widehat\beta)\T\widehat u
+		=\widehat\beta\T(X\T\widehat u)
+		=0.
+	\end{align}
+	For the third equality, suppose that the first column of $X$ is $\one$, the vector of ones.
+	Then the first row of $X\T\widehat u=0$ gives $\one\T\widehat u=0$.
+	Since $\widehat u_i=Y_i-\widehat Y_i$, this also gives $n\inv\sum_i\widehat Y_i=n\inv\sum_iY_i$.
+\end{proof}
+
+\begin{definition}[Projection and Annihilation Matrices]\label{def-projection-matrices}
+	The \emph{projection matrix} and \emph{annihilation matrix} are
+	\begin{align}
+		P\coloneqq X(X\T X)\inv X\T,
+		\qquad M\coloneqq I_n-P.
+	\end{align}
+	They give the fitted values and residuals directly: $\widehat Y=PY$ and $\widehat u=MY$.
+	The matrix $M$ is also called the \emph{residual-maker matrix}.
+\end{definition}
+
+% \begin{remark}[What is a projection?]
+% 	A projection is a linear mapping such that when applied twice, it gives the same result as when applied once.
+% 	For a matrix $A$, this means $A^2=A$, a property called \emph{idempotence}.
+% 	When $A$ is also symmetric, it is an \emph{orthogonal} projection:
+% 	the part removed is perpendicular to the space onto which we project.
+% \end{remark}
+
+\begin{proposition}[Properties of $P$ and $M$]\label{prop-projection-matrices}
+	Both matrices are symmetric and idempotent:
+	\begin{align}
+		P\T=P,\quad P^2=P,
+		\qquad M\T=M,\quad M^2=M.
+	\end{align}
+	Furthermore,
+	\begin{align}
+		PX=X,\qquad MX=0,\qquad PM=MP=0.
+	\end{align}
+\end{proposition}
+\begin{proof}
+	Symmetry follows by transposing $P$ and $M$.
+	For idempotence,
+	\begin{align*}
+		P^2&=X(X\T X)\inv(X\T X)(X\T X)\inv X\T=P,\\
+		M^2&=(I_n-P)^2=I_n-2P+P^2=M.
+	\end{align*}
+	Also, $PX=X(X\T X)\inv X\T X=X$, so $MX=X-PX=0$.
+	Finally, $PM=P-P^2=0$, and similarly $MP=0$.
+\end{proof}
+
+\begin{remark}[Projection Interpretation of \gls{ols}]
+	Consider \autoref{fig-ols}.
+	Here the labels $X_1$ and $X_2$ represent two columns of the design matrix, rather than individual observations.
+	The fitted vector $\widehat Y$ or $PY$ lies in the column space of $X$,
+	and the residual vector is orthogonal to that space.
+	Thus, \gls{ols} projects $Y$ onto the space of vectors that can be written as $X b$,
+	i.e., the span of the columns of $X$.
+	Applying $P$ again does not change the fitted vector; applying $M$ to any vector $Xb$ removes it completely.
+	The decomposition $Y=PY+MY$ forms a right triangle, so the Pythagorean theorem gives
+	\begin{align}\label{eq-uncentered-pythagoras}
+		\|Y\|^2=\|PY\|^2+\|MY\|^2.
+	\end{align}
+\end{remark}
+
+\begin{remark}[The Population Counterpart]
+	Let $u_i=Y_i-X_i\T\beta$ denote the population regression error.
+	In the sample, orthogonality means that the usual dot product is zero.
+	In the population, we instead require the expected product to be zero.
+	The condition $\E(X_i u_i)=0$ implies that $u_i$ is orthogonal to every linear combination of the regressors:
+	\begin{align}
+		\E[(X_i\T b)u_i]=b\T\E(X_i u_i)=0
+		\quad\forall b\in\reals^k.
+	\end{align}
+	Thus, $X_i\T\beta$ is the population projection of $Y_i$ onto linear functions of $X_i$.
+	Taking $b=\beta$ eliminates the cross term and gives the population version of the Pythagorean identity:
+	\begin{align}
+		\E[Y_i^2]
+		= \E[(X_i\T\beta + u_i)^2]
+		= \E[(X_i\T\beta)^2] + \E[u_i^2].
+	\end{align}
+\end{remark}
+
+\section{The \glsentrylong{fwl} Theorem}
+
+Partition the design matrix into two groups of columns, $X=[X_1\;X_2]$,
+with $k_1$ and $k_2$ columns, respectively, where $k_1+k_2=k$.
+In this section, $X_1$ and $X_2$ denote \emph{blocks of the design matrix}, not individual observations.
+Write $\widehat\beta=(\widehat\beta_1\T,\widehat\beta_2\T)\T$ for the corresponding coefficient blocks.
+If the regression includes an intercept, place it in $X_1$.
+Define
+\begin{align}
+	P_1=X_1(X_1\T X_1)\inv X_1\T,
+	\qquad M_1=I_n-P_1.
+\end{align}
+
+\begin{theorem}[\gls{fwl}]\label{thm-fwl}
+	Suppose that $[X_1\;X_2]$ has full column rank.
+	The coefficient on $X_2$ in the regression of $Y$ on $[X_1\;X_2]$ is
+	\begin{align}\label{eq-fwl}
+		\widehat\beta_2=(X_2\T M_1X_2)\inv X_2\T M_1Y.
+	\end{align}
+	Equivalently, regress $M_1Y$ on $M_1X_2$ without adding an intercept.
+	This regression gives the same coefficient $\widehat\beta_2$ and the same residual vector as the full regression.
+\end{theorem}
+\begin{proof}
+	The first block of the full normal equations gives
+	\begin{align*}
+		\widehat\beta_1=(X_1\T X_1)\inv X_1\T(Y-X_2\widehat\beta_2).
+	\end{align*}
+	Substituting this into the full residual gives
+	\begin{align*}
+		\widehat u=Y-X_1\widehat\beta_1-X_2\widehat\beta_2
+		=M_1Y-M_1X_2\widehat\beta_2.
+	\end{align*}
+	The second block of the normal equations is therefore
+	\begin{align*}
+		X_2\T M_1Y-X_2\T M_1X_2\widehat\beta_2=0.
+	\end{align*}
+	The matrix $M_1X_2$ has full column rank:
+	otherwise, a nonzero combination of the columns of $X_2$ would lie in the span of $X_1$,
+	contradicting full column rank of $[X_1\;X_2]$.
+	Since $M_1\T M_1=M_1$, the cross-product matrix is
+	$(M_1X_2)\T(M_1X_2)=X_2\T M_1X_2$, which is nonsingular.
+	Solving gives \eqref{eq-fwl}, and the displayed residual identity proves the remaining claim.
+\end{proof}
+
+\begin{remark}[What Does ``Controlling For'' Mean?]
+	The coefficient on $X_2$ is often described as ``its coefficient after controlling for $X_1$.''
+	What does ``controlling for'' mean in this context?
+	The theorem gives a three-step recipe:
+	\begin{enumerate}
+		\item Regress $Y$ on $X_1$ and keep the residual $M_1Y$.
+		\item Regress every column of $X_2$ on $X_1$ and keep the residuals $M_1X_2$.
+		\item Regress $M_1Y$ on $M_1X_2$.
+	\end{enumerate}
+	Thus, the coefficient on $X_2$ uses the variation left after removing the linear contribution of $X_1$ from both the outcome and the regressors.
+\end{remark}
+
+\begin{example}[Demeaning as a Special Case]\label{eg-fwl-demeaning}
+	If $X_1=\one$, the vector of ones, then $P_1=n\inv\one\one\T$.
+	Multiplying by $M_1$ subtracts each variable's sample mean.
+	Thus, regressing an outcome on regressors and an intercept gives the same slope coefficients
+	as regressing the demeaned outcome on the demeaned regressors without an intercept.
+\end{example}
+
+\begin{remark}[The Geometry of \glsentryshort{fwl}]
+	In \autoref{fig-fwl}, each block contains a single regressor vector.
+	The full regression projects $Y$ onto the plane spanned by $X_1$ and $X_2$.
+	Removing the $X_1$ component leaves the red vector $M_1Y$ and the blue direction $M_1X_2$.
+	Projecting the red vector onto that direction gives $M_1X_2\widehat\beta_2$.
+	The remaining perpendicular component is the same residual $Y-\widehat Y$ as in the full regression.
+	Note that vectors are translated in the drawing to show these right triangles together.
+\end{remark}
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[scale=1]{figures/fwl.pdf}
+	\caption{The Geometry of \gls{fwl} Theorem.}
+	\label{fig-fwl}
+\end{figure}
+
+\section{Goodness of Fit}
+
+\subsection{The Share Explained by the Projection}
+
+Recall that the fitted values and residuals give the orthogonal decomposition $Y=PY+MY$.
+The Pythagorean theorem therefore gives
+\begin{align}
+	\underbrace{\|Y\|^2}_{\text{total squared length}}
+	=\underbrace{\|PY\|^2}_{\text{explained by the projection}}
+	+\underbrace{\|MY\|^2}_{\text{unexplained}}.
+\end{align}
+A measure of fit is the share of the total squared length accounted for by $PY$.
+
+\begin{definition}[Uncentered Coefficient of Determination]
+	For $Y\ne0$, the \emph{uncentered} $R^2$ is
+	\begin{align}\label{eq-uncentered-r-squared}
+		R_u^2\coloneqq\frac{\|PY\|^2}{\|Y\|^2}
+		=1-\frac{\|MY\|^2}{\|Y\|^2}
+		=1-\frac{\sum_{i=1}^n\widehat u_i^2}{\sum_{i=1}^nY_i^2}.
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	The orthogonal decomposition ensures that $0\le R_u^2\le1$, with or without an intercept.
+	However, this measure counts the entire fitted vector $PY$ as explained,
+	including any part that simply predicts the mean.
+\end{remark}
+
+\begin{example}[Explaining Mostly the Mean]\label{eg-r-squared-mean}
+	Let $Y=(9,11)\T$ and regress it on an intercept alone.
+	Then $PY=(10,10)\T$ and $MY=(-1,1)\T$, so
+	\begin{align}
+		R_u^2=\frac{10^2+10^2}{9^2+11^2}=\frac{100}{101}\approx0.99.
+	\end{align}
+	The fitted vector accounts for almost all of $\|Y\|^2$,
+	yet it explains none of the differences between observations: it predicts the same mean for everyone.
+\end{example}
+
+\subsection{Partialling Out the Mean: Centered \texorpdfstring{$R^2$}{R-squared}}
+
+To focus on variation \emph{around the mean}, we first remove the mean using \gls{fwl}.
+Suppose that the regression includes an intercept, and write $X=[\one\;X_2]$.
+We have
+\begin{align}
+	P_1=\frac1n\one\one\T,
+	\qquad M_1=I_n-\frac1n\one\one\T.
+\end{align}
+As explained in \autoref{eg-fwl-demeaning},
+partialling out the intercept centers the variables.
+By \gls{fwl}, regressing $M_1 Y$ on $M_1 X_2$ gives the same slope coefficients and residuals as the original regression.
+Here $P$ and $M$ continue to denote the projection and residual-maker matrices for the full design matrix $X$.
+Let $\bar Y=n\inv\sum_{i=1}^nY_i$.
+Since the regression includes an intercept, the fitted values average to $\bar Y$ and the residuals average to zero.
+Thus, $M_1PY=PY-\bar Y\one$ and $M_1MY=MY$.
+Applying $M_1$ to $Y=PY+MY$ gives
+\begin{align}
+	M_1Y=M_1PY+MY.
+\end{align}
+% The fitted vector in the residualized regression is $M_1X_2\widehat\beta_2=M_1PY$,
+% and its residual is $MY$.
+These are orthogonal, just as fitted values and residuals are in the original regression.
+
+\begin{proposition}[Decomposition of Variation]\label{prop-centered-pythagoras}
+	The centered total, explained, and residual sums of squares satisfy
+	\begin{align}\label{eq-centered-pythagoras}
+		\underbrace{\|M_1 Y\|^2}_{\mathrm{TSS}}
+		=\underbrace{\|M_1PY\|^2}_{\mathrm{ESS}}
+		+\underbrace{\|MY\|^2}_{\mathrm{RSS}}.
+	\end{align}
+\end{proposition}
+\begin{proof}
+	Note the following:
+	\begin{align}
+		\|M_1 Y\|^2
+		= \|M_1PY\|^2 + \|MY\|^2 + 2 Y\T P M_1 MY.
+	\end{align}
+	Since $P M_1 M = P M = 0$, we have the desired decomposition.
+\end{proof}
+
+\begin{definition}[Centered Coefficient of Determination]
+	For nonconstant $Y$ and a regression including an intercept,
+	the \emph{centered} $R^2$, usually simply called $R^2$, is
+	\begin{align}\label{eq-centered-r-squared}
+		R^2\coloneqq\frac{\|M_1PY\|^2}{\|M_1 Y\|^2}
+		=\frac{\mathrm{ESS}}{\mathrm{TSS}}
+		=1-\frac{\mathrm{RSS}}{\mathrm{TSS}}.
+	\end{align}
+\end{definition}
+
+\begin{remark}[Reading Centered $R^2$]
+	$R^2$ is the fraction of the sample variation around $\bar Y$ accounted for by the centered fitted values.
+	The idea is the same as for uncentered $R_u^2$, but we measure the projection's share \emph{after removing the mean}.
+	In \autoref{eg-r-squared-mean}, $M_1PY=0$, so centered $R^2=0$.
+\end{remark}
+
+\begin{remark}[Why the Intercept Matters]
+	Without an intercept, the residuals need not sum to zero, and centering the outcome and regressors generally changes the fitted regression.
+	Consequently, the centered decomposition need not hold for the original fit.
+	If we still report
+	\begin{align}
+		1-\frac{\sum_{i=1}^n\widehat u_i^2}{\sum_{i=1}^n(Y_i-\bar Y)^2},
+	\end{align}
+	it can be negative and need not equal a share of explained variation.
+	A negative value means that the regression fits worse than simply predicting $\bar Y$.
+	In contrast, the uncentered decomposition $Y=PY+MY$ remains orthogonal without an intercept,
+	so $R_u^2$ remains between zero and one whenever it is defined.
+\end{remark}
+
+\subsection{Adjusted \texorpdfstring{$R^2$}{R-squared}}
+
+\begin{definition}[Adjusted Coefficient of Determination]
+	Suppose that the regression includes an intercept and $n>k$,
+	where $k$ counts all coefficients, including the intercept.
+	The \emph{adjusted} version of centered $R^2$ is
+	\begin{align}
+		\bar R^2\coloneqq1-\frac{\mathrm{RSS}/(n-k)}{\mathrm{TSS}/(n-1)}
+		=1-\frac{n-1}{n-k}(1-R^2).
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	Adding regressors on the same sample cannot decrease $R^2$, but can decrease $\bar R^2$.
+	When a new regressor does not improve the fit enough to offset the loss of degrees of freedom, adjusted $R^2$ decreses.
+\end{remark}
+
+\begin{remark}[Why Divide by $n-k$ and $n-1$?]
+	One statistical explanation uses variance estimation.
+	For \gls{iid} observations with a linear conditional mean and homoskedastic error with variance $\sigma^2$,
+	\begin{align*}
+		\E(\mathrm{RSS}\given X)&=(n-k)\sigma^2,\\
+		\E(\mathrm{TSS})&=(n-1)\var(Y_i).
+	\end{align*}
+	Thus, $\mathrm{RSS}/(n-k)$ and $\mathrm{TSS}/(n-1)$ are unbiased estimates of the error variance and outcome variance, respectively.
+	Adjusted $R^2$ compares these corrected variance estimates.
+	This does not make their ratio, or adjusted $R^2$ itself, unbiased.
+\end{remark}
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+\end{document}

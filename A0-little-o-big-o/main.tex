@@ -1,0 +1,148 @@
+%!TEX program = xelatex
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\section{Little-$o$ and Big-$O$ Notation}
+
+\begin{definition}[Little-$o$ Notation]\label{def-little-o}
+	Let $f$ and $g$ be real-valued functions defined on a neighborhood of $0$.
+	The function $f(h)$ is said to be $o(g(h))$ as $h \to 0$ if
+	$\forall\epsilon>0$ $\exists\delta>0$ such that
+	\begin{align}
+		|f(h)| < \epsilon |g(h)|
+		\quad\text{whenever}\quad
+		|h| < \delta.
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	Equivalently, $f(h) = o(g(h))$ as $h \to 0$ if $\lim_{h\to0}f(h)/g(h) = 0$.
+\end{remark}
+
+\begin{definition}[Big-$O$ Notation]\label{def-big-o}
+	Let $f$ and $g$ be real-valued functions defined on a neighborhood of $0$.
+	The function $f(h)$ is said to be $O(g(h))$ as $h \to 0$ if
+	$\exists M>0$ and $\exists\delta>0$ such that
+	\begin{align}
+		|f(h)| \leq M |g(h)|
+		\quad\text{whenever}\quad
+		|h| < \delta.
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	By definition, any function $g(h)$ is $O(g(h))$.
+\end{remark}
+
+\begin{remark}[Interpretation of $o$ and $O$]
+	If $f(h)=o(h)$ as $h \to 0$, then $f(h)$ goes to zero \emph{faster} than the rate of $h$;
+	if $f(h)=O(h)$ as $h \to 0$, then $f(h)$ goes to zero \emph{at most} at the rate of $h$, i.e.,
+	providing the upper bound on the order.
+\end{remark}
+
+\begin{example}[Taylor Expansion]\label{eg-taylor-expansion}
+	Let $f$ be differentiable at $x_0$.
+	Then, as $h \to 0$, the first-order Taylor expansion of $f$ around $x_0$ is
+	\begin{align}
+		f(x_0 + h)
+		&= f(x_0) + f'(x_0)h + o(|h|).
+	\end{align}
+	Furthermore, if $f$ is twice continuously differentiable in a neighborhood of $x_0$,
+	then the remainder in the first-order expansion can be sharpened to
+	\begin{align}
+		f(x_0 + h)
+		&= f(x_0) + f'(x_0)h + O(|h|^2).
+	\end{align}
+\end{example}
+
+\begin{remark}
+	In this course, we will focus more on the first-order Taylor expansion and the $o(|h|)$ remainder term,
+	i.e., most of the time,
+	we just need the remainder term to go away faster than $|h|$ vanishes.
+\end{remark}
+
+\begin{exercise}[Arithmetic with $o$ and $O$]\label{eg-arithmetic-o}
+	Let $f$, $g$, and $h$ be real-valued functions defined on a neighborhood of $0$.
+	Show the following as $h \to 0$:
+	\begin{align*}
+		o(f(h)) + o(g(h)) &= o(|f(h)| + |g(h)|), & o(f(h))o(g(h)) &= o(f(h)g(h)),\\
+		o(f(h)) + O(g(h)) &= O(|f(h)| + |g(h)|), & o(f(h))O(g(h)) &= o(f(h)g(h)),\\
+		O(f(h)) + O(g(h)) &= O(|f(h)| + |g(h)|), & O(f(h))O(g(h)) &= O(f(h)g(h)).
+	\end{align*}
+	Explain why having absolute values in some right-hand sides are necessary.
+	Also convince yourself intuitively why these results are true.
+\end{exercise}
+
+\section{Little-$o_p$ and Big-$O_p$ Notation}
+
+\begin{definition}[Little-$o_p$ Notation]\label{def-little-op}
+	Let $\{X_n\}_{n=1}^{\infty}$ be a sequence of random variables and let $\{a_n\}_{n=1}^{\infty}$ be a sequence of positive constants.
+	$X_n$ is said to be $o_p(a_n)$ if $\forall\epsilon,\delta>0$ $\exists N_{\epsilon,\delta}\in\naturals$ such that
+	\begin{align}
+		\Pr\left\{\left|\frac{X_n}{a_n}\right| > \delta\right\} < \epsilon
+		\quad\text{whenever}\quad
+		n > N_{\epsilon,\delta}.
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	Equivalently, $X_n = o_p(a_n)$ if $|X_n/a_n| \pto 0$ as $n \to \infty$.
+\end{remark}
+
+\begin{definition}[Big-$O_p$ Notation]\label{def-big-op}
+	Let $\{X_n\}_{n=1}^{\infty}$ be a sequence of random variables and let $\{a_n\}_{n=1}^{\infty}$ be a sequence of positive constants.
+	$X_n$ is said to be $O_p(a_n)$ if $\forall\epsilon>0$ $\exists \delta_\epsilon>0$ and $N_\epsilon\in\naturals$ such that
+	\begin{align}
+		\Pr\left\{\left|\frac{X_n}{a_n}\right| > \delta_\epsilon\right\} < \epsilon
+		\quad\text{whenever}\quad
+		n > N_\epsilon.
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	By definition, any deteministic sequence $a_n$ is $O_p(a_n)$.
+\end{remark}
+
+\begin{remark}[Interpretation of $o_p$ and $O_p$]
+	Little-$o_p$ means that $X_n$ is negligible relative to $a_n$, i.e., $X_n/a_n$ \emph{converges in probability} to zero.
+	Big-$O_p$ means that $X_n/a_n$ is \emph{stochastically bounded}, i.e.,
+	the sequence $X_n/a_n$ does not ``blow up'' as $n \to \infty$.
+\end{remark}
+
+\begin{example}
+	Let $\{X_i\}_{i=1}^{n}$ be \glsentryshort{iid} with mean zero.
+	Then,
+	\begin{align}
+		\frac1n\sum_{i=1}^{n}X_i = o_p(1)
+	\end{align}
+	by the \gls{wlln}.
+	Furthermore, if $\var(X_i)=\sigma^2$ is finite, then by the \gls{clt},
+	\begin{align}
+		\frac1n\sum_{i=1}^{n}X_i = O_p(n^{-1/2})
+		\quad\text{since}\quad
+		\frac1{\sqrt{n}}\sum_{i=1}^{n}X_i \dto \normaldistribution(0,\sigma^2).
+	\end{align}
+\end{example}
+
+\begin{exercise}[Arithmetic with $o_p$ and $O_p$]\label{eg-arithmetic-op}
+	Let $\{a_n\}_{n=1}^{\infty}$ and $\{b_n\}_{n=1}^{\infty}$ be sequences of positive constants.
+	Show the following as $n \to \infty$:
+	\begin{align*}
+		o_p(a_n) + o_p(b_n) &= o_p(a_n + b_n), & o_p(a_n)o_p(b_n) &= o_p(a_nb_n),\\
+		o_p(a_n) + O_p(b_n) &= O_p(a_n + b_n), & o_p(a_n)O_p(b_n) &= o_p(a_nb_n),\\
+		O_p(a_n) + O_p(b_n) &= O_p(a_n + b_n), & O_p(a_n)O_p(b_n) &= O_p(a_nb_n).
+	\end{align*}
+	Also convince yourself intuitively why these results are true.
+\end{exercise}
+
+% \vfill
+% \section*{Acronyms}
+% \printglossaries
+
+\end{document}

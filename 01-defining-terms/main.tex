@@ -1,0 +1,139 @@
+%!TEX program = xelatex
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Note: Defining Terms}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\maketitle
+
+\noindent
+Let $X$ be a real-valued random variable.
+
+\begin{definition}[\glsentryshort{cdf} and \glsentryshort{pdf}]\label{def-cdf-pdf}
+	The \gls{cdf} of $X$ is defined as $F_X(x) \coloneqq \Pr\{X \leq x\}$ for all $x \in \reals$.
+	A \gls{pdf} of $X$ is a nonnegative measurable function $f_X$ satisfying
+	$F_X(x)=\int_{-\infty}^{x}f_X(t)\diff t$ for all $x\in\reals$.
+	Such a density exists if and only if $F_X$ is absolutely continuous.
+	In that case, $f_X(x)=F_X'(x)$ for almost every $x$.
+\end{definition}
+
+\begin{remark}
+	The distribution of $X$ is characterized by its \gls{cdf},
+	so the \gls{cdf} exists for any random variable,
+	whereas the \gls{pdf} may not exist for all random variables.
+	For example, the \gls{cdf} of a discrete random variable has jumps and cannot be represented as an integral of a density.
+\end{remark}
+
+\begin{definition}[Moment]\label{def-moment}
+	The $k$-th moment of a random variable $X$ is defined as $\E(X^k)$, provided that the expectation exists.
+\end{definition}
+
+\begin{remark}
+	The mean is the first moment,
+	and the variance is the second \emph{central} moment,
+	defined as $\var(X) = \E[(X - \E X)^2]$.
+	The second moment of $X$ is $\E X^2$.
+\end{remark}
+
+\begin{definition}[Sample]\label{def-sample}
+	A sample is a collection of random variables,
+	often denoted as $\{X_i\}_{i=1}^{n}$ where $n$ is the sample size.
+\end{definition}
+
+\begin{definition}[Statistic]\label{def-statistic}
+	A statistic is a function of a sample.
+\end{definition}
+
+\begin{definition}[Estimator]\label{def-estimator}
+	An estimator is a statistic used to guess, compute, or estimate a parameter.
+\end{definition}
+
+% Three estimators
+% - analog: MoM
+% - loss function: square loss
+% - fully parametric
+%     - likelihood based methods
+
+\begin{remark}
+	An \emph{estimate} is the realized value of an estimator given a realized sample.
+	An \emph{estimand} is the parameter that an estimator aims to estimate.
+\end{remark}
+
+\begin{definition}[Parameter]\label{def-parameter}
+	A parameter is a target feature of the underlying model.
+\end{definition}
+
+\begin{remark}[What is a parameter really?]
+	There are different ways to define a parameter.
+	In class, we defined a parameter as a function of the population distribution,
+	which is a definition commonly used in statistics.
+	Under this definition, identification is built in:
+	once the population distribution is given, the parameter is uniquely determined.
+	% This does not mean that we know its value from a finite sample.
+	In econometrics, we also work with \emph{economic} models,
+	whose parameters may describe preferences, technologies, or behavioral responses.
+	Different values of these parameters can sometimes generate the same distribution of observable variables,
+	so identification becomes a separate question.
+\end{remark}
+
+\begin{definition}[\glsentrylong{iid}]\label{def-iid}
+	A sample $\{X_i\}_{i=1}^{n}$ is said to be \gls{iid} if the $X_i$ are independent and identically distributed,
+	denoted as $\{X_i\}_{i=1}^n\iidto F$ for some distribution $F$.
+\end{definition}
+
+\begin{remark}
+	Here is an example of a sample that is identically distributed but \emph{not} independent:
+	Let $\{Z_i\}_{i=0}^n\iidto\normaldistribution(0,1)$, with $n\geq2$.
+	Define $X_i = (Z_0 + Z_i)/\sqrt{2}$ for all $i=1,...,n$.
+	Then each $X_i\sim\normaldistribution(0,1)$,
+	but $\cov(X_i,X_j)=1/2$ for $i\ne j$ because they share the term $Z_0$.
+	Thus, the $X_i$ are identically distributed but not independent.
+\end{remark}
+
+\begin{definition}[Identification]\label{def-identification}
+	A parameter is said to be identified if it can be written as a function of the population distribution,
+	i.e., if it can be uniquely determined from the population distribution of the observable variables.
+\end{definition}
+
+\begin{remark}[Alternative Formulation]
+	You will often see identification formulated in the following way:
+	Let $\Theta$ denote the parameter space and let $P_\theta$ denote the population distribution of the observable variables under parameter $\theta\in\Theta$.
+	Then the parameter $\theta$ is said to be identified if $P_\theta=P_{\theta'}$ implies $\theta=\theta'$ for all $\theta,\theta'\in\Theta$.
+\end{remark}
+
+\begin{example}[Schooling and Wages]\label{eg-identification-schooling}
+	Suppose that log wages $Y$ are determined by years of schooling $S$ and an unobserved factor $U$:
+	\begin{align}
+		Y=\alpha+\beta S+U,
+		\qquad \E(U)=0.
+	\end{align}
+	Here $\beta$ describes the effect of an additional year of schooling holding $U$ fixed.
+	We observe $(Y,S)$, but not $U$, which may include unobserved ability.
+	Assume finite first moments and place no further restrictions on the relationship between $S$ and $U$.
+	For any candidate value $b$, define
+	\begin{align*}
+		a_b&=\E(Y)-b\E(S),\\
+		U_b&=Y-a_b-bS.
+	\end{align*}
+	Then $Y=a_b+bS+U_b$ and $\E(U_b)=0$.
+	Thus, every value $b$ is compatible with exactly the same joint distribution of the observables $(Y,S)$.
+	The schooling effect $\beta$ is not identified under these assumptions:
+	Even knowing the entire population distribution would not distinguish it from the contribution of the unobserved factor.
+	This demonstrates that only requiring $\E(U)=0$ is not enough to identify $\beta$,
+	since an arbitrary relationship between $S$ and $U$ is allowed.
+\end{example}
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+\end{document}
