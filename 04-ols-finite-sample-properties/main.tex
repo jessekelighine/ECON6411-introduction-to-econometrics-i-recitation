@@ -31,12 +31,14 @@ where $X_i\in\reals^k$, $Y=(Y_1,\ldots,Y_n)\T$,
 $X=[X_1\;\cdots\;X_n]\T$, and $e=(e_1,\ldots,e_n)\T$.
 The coefficient $\beta$ is fixed, while the outcomes, regressors, and errors may be random.
 An intercept, if included, counts as one of the $k$ regressors.
+Throughout, the errors have finite second moments.
 
-\begin{assumption}[Full Rank and Conditional Mean Zero]\label{ass-basic}
-	The design matrix $X$ has full column rank $k$, the errors have finite second moments, and
-	\begin{align}\label{eq-conditional-mean}
-		\E(e\given X)=0.
-	\end{align}
+\begin{assumption}[Full Rank]\label{ass-full-rank}
+	The design matrix $X$ has full column rank $k$.
+\end{assumption}
+
+\begin{assumption}[Conditional Mean Restriction]\label{ass-conditional-mean}
+		$\E(e\given X)=0$.
 \end{assumption}
 
 \begin{remark}
@@ -80,7 +82,7 @@ The starting point for both calculations is
 Conditional on $X$, the matrix multiplying $e$ is fixed.
 
 \begin{proposition}[Conditional and Unconditional Unbiasedness]
-	Under \autoref{ass-basic},
+	Under \autoref{ass-full-rank} and \ref{ass-conditional-mean},
 	\begin{align}
 		\E(\widehat\beta\given X)=\beta.
 	\end{align}
@@ -104,7 +106,7 @@ Conditional on $X$, the matrix multiplying $e$ is fixed.
 \end{remark}
 
 \begin{proposition}[Conditional Variance]\label{prop-variance}
-	Under \autoref{ass-basic},
+	Under \autoref{ass-full-rank} and \ref{ass-conditional-mean},
 	\begin{align}\label{eq-sandwich}
 		\var(\widehat\beta\given X)
 		=(X\T X)\inv X\T D X(X\T X)\inv.
@@ -171,7 +173,8 @@ We first define the class of estimators and what it means to be best within that
 \end{remark}
 
 \begin{theorem}[Gauss-Markov]\label{thm-gauss-markov}
-	Under \autoref{ass-basic} and $D=\sigma^2 I_n$, \gls{ols} is the best linear unbiased estimator.
+	Under \autoref{ass-full-rank} and \ref{ass-conditional-mean} and $D=\sigma^2 I_n$,
+	\gls{ols} is the best linear unbiased estimator.
 \end{theorem}
 \begin{proof}
 	Unbiasedness for every $\beta$ requires $AX=I_k$ since
@@ -207,7 +210,8 @@ We first define the class of estimators and what it means to be best within that
 	It compares \gls{ols} only with linear unbiased estimators; it does not rule out improvements from accepting some bias.
 	Because unequal variances and correlated errors are common in applications,
 	the theorem is merely a benchmark rather than a general efficiency guarantee.
-	When \eqref{eq-spherical-errors} fails, the sandwich formula \eqref{eq-sandwich} still applies under \autoref{ass-basic}.
+	When \eqref{eq-spherical-errors} fails,
+	the sandwich formula \eqref{eq-sandwich} still applies under \autoref{ass-full-rank} and \ref{ass-conditional-mean}.
 \end{remark}
 
 \section{Estimating the Variance}
@@ -238,7 +242,7 @@ But fitting the regression removes some of the noise in the sample:
 Using residuals as if they were errors therefore understates error variance on average.
 
 \begin{proposition}[The Degrees of Freedom Adjustment]\label{prop-error-variance}
-	Under \autoref{ass-basic} and $D=\sigma^2 I_n$,
+	Under \autoref{ass-full-rank} and \ref{ass-conditional-mean} and $D=\sigma^2 I_n$,
 	\begin{align}\label{eq-expected-rss}
 		\E(\widehat e\T\widehat e\given X)=(n-k)\sigma^2.
 	\end{align}
@@ -275,7 +279,7 @@ Using residuals as if they were errors therefore understates error variance on a
 \end{remark}
 
 \begin{proposition}[An Unbiased Covariance Estimator]
-	Under \autoref{ass-basic} and $D=\sigma^2 I_n$, the matrix
+	Under \autoref{ass-full-rank} and \ref{ass-conditional-mean} and $D=\sigma^2 I_n$, the matrix
 	\begin{align}
 		\widehat V=\widehat\sigma^2(X\T X)\inv
 	\end{align}
@@ -330,7 +334,7 @@ The prediction error decomposes as
 The first term is the new observation's genuine error; the second comes from estimating the coefficient.
 
 \begin{proposition}[\Gls{mse} for Prediction]
-	Under \autoref{ass-basic}, $D=\sigma^2 I_n$, and the assumptions above,
+	Under \autoref{ass-full-rank} and \ref{ass-conditional-mean}, $D=\sigma^2 I_n$, and the assumptions above,
 	for each training observation $i\in\{1,\ldots,n\}$ and the new observation,
 	\begin{align}\label{eq-prediction-mse}
 		\E[(Y_i-\widehat Y_i)^2\given X] &= \sigma^2-\sigma^2X_i\T(X\T X)\inv X_i,\\
@@ -362,6 +366,7 @@ The first term is the new observation's genuine error; the second comes from est
 		\E[(Y_{n+1}-\widehat Y_{n+1})^2\given X]
 		&=\var(e_{n+1}\given X)+\var(X_{n+1}\T\Delta\given X)\\
 		&=\sigma^2+\sigma^2X_{n+1}\T(X\T X)\inv X_{n+1}.
+		\qedhere
 	\end{align*}
 \end{proof}
 
@@ -426,7 +431,7 @@ It disappears if $\beta_2=0$ or $X_1\T X_2=0$, though other cancellations are al
 
 \paragraph{Variance.}
 
-Conditional on the full $X$, the omitted contribution is fixed, so
+Assuming $D=\sigma^2 I$, we have
 \begin{align}
 	\var(\widetilde\beta_1\given X)&=\sigma^2(X_1\T X_1)\inv,\\
 	\var(\widehat\beta_1\given X)&=\sigma^2(X_1\T M_2X_1)\inv,
@@ -468,10 +473,10 @@ because both models are correctly specified and $\E(e\given X)=0$.
 
 \paragraph{Variance.}
 
-If $X_2$ and $X_1$ are not orthogonal,
-then the inclusion of $X_2$ ``soaks up'' some usable variation in $X_1$,
-i.e., the relation \eqref{eq-variable-variance-comparison} still holds.
-This means that by including unnecessary variables, we can increase the variance of the estimate of $\beta_1$.
+The variance comparison \eqref{eq-variable-variance-comparison} applies unchanged when $\beta_2=0$:
+the covariance formulas do not depend on $\beta_2$.
+Thus, including unnecessary variables cannot reduce the variance of any linear combination of the coefficients in $\beta_1$.
+If $X_1$ and $X_2$ are not orthogonal, controlling for $X_2$ removes usable variation from $X_1$ and can increase variance.
 
 \subsection{The Bias-Variance Tradeoff}
 
@@ -552,7 +557,7 @@ The multicollinearity and singular value interpretation is developed in \autoref
 \end{remark}
 
 \begin{proposition}[Ridge Bias and Variance]\label{prop-ridge}
-	Under \autoref{ass-basic} and $D=\sigma^2 I_n$, for fixed $\lambda>0$,
+	Under \autoref{ass-full-rank} and \autoref{ass-conditional-mean} and $D=\sigma^2 I_n$, for fixed $\lambda>0$,
 	write $Q=X\T X$ and $B_\lambda=(Q+\lambda I_k)\inv$.
 	\begin{align}
 		\E(\widehat\beta_\lambda\given X)-\beta
@@ -781,7 +786,7 @@ For the fitted values,
 Unlike the \gls{ols} projection, ridge retains only a fraction of each outcome component in the regressor space.
 
 \begin{remark}[Variance and \gls{mse} by Direction]
-	Under \autoref{ass-basic} and $D=\sigma^2 I_n$, write $\theta_j=v_j\T\beta$.
+	Under \autoref{ass-full-rank} and \autoref{ass-conditional-mean} and $D=\sigma^2 I_n$, write $\theta_j=v_j\T\beta$.
 	For fixed $\lambda>0$,
 	\begin{align*}
 		\E(v_j\T\widehat\beta_\lambda\given X)-\theta_j

@@ -1,0 +1,285 @@
+%!TEX program = xelatex
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Notes: \glsentryshort{ols} Large Sample Properties}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\appendix
+\section{Modes of Convergence}
+
+Let $\{Z_n\}_{n=1}^{\infty}$ be a sequence of scalar random variables and let $Z$ be a scalar random variable.
+A constant is also allowed as the limit.
+
+\begin{definition}[Convergence in Probability]
+	We say that $Z_n$ \emph{converges in probability} to $Z$, written $Z_n\pto Z$, if
+	for every $\varepsilon>0$,
+	\begin{align}\label{eq-probability-convergence}
+		\Pr(|Z_n-Z|>\varepsilon)\to0
+		\qquad\text{as }n\to\infty.
+	\end{align}
+\end{definition}
+
+\begin{definition}[Convergence in Mean Square]
+	We say that $Z_n$ \emph{converges in mean square} to $Z$, written $Z_n\msto Z$, if
+	\begin{align}\label{eq-mean-square-convergence}
+		\E[(Z_n-Z)^2]\to0,
+	\end{align}
+	provided that the variables have finite second moments.
+\end{definition}
+
+\begin{proposition}\label{prop-ms-implies-p}
+	If $Z_n\msto Z$, then $Z_n\pto Z$.
+\end{proposition}
+\begin{proof}
+	For any $\varepsilon>0$, Markov's inequality applied to the nonnegative random variable $(Z_n-Z)^2$ gives
+	\begin{align*}
+		\Pr(|Z_n-Z|>\varepsilon)
+		=\Pr((Z_n-Z)^2>\varepsilon^2)
+		\le\frac{\E[(Z_n-Z)^2]}{\varepsilon^2}
+		\to0.
+	\end{align*}
+	This is the definition of convergence in probability.
+\end{proof}
+
+\begin{remark}[Bias-Variance Decomposition]
+	For a constant target $c$, the same result follows from the bias-variance decomposition:
+	\begin{align}\label{eq-mse-decomposition}
+		\E[(Z_n-c)^2]=\var(Z_n)+(\E(Z_n)-c)^2.
+	\end{align}
+	If variance and squared bias both vanish, the \gls{mse} tends to zero.
+	Mean square convergence then implies convergence in probability by \autoref{prop-ms-implies-p}.
+\end{remark}
+
+\begin{example}[Converse does not hold]\label{ex-p-not-ms}
+	Let $\{Z_n\}$ be a sequence of random variables with $\supp(Z_n)=\{0,n\}$ $\forall n$.
+	Let $Z_n=n$ with probability $1/n$ and $Z_n=0$ otherwise.
+	For every fixed $\varepsilon>0$ and sufficiently large $n$,
+	\begin{align*}
+		\Pr(|Z_n|>\varepsilon)=n\inv\to0
+	\end{align*}
+	Thus $Z_n\pto0$.
+	However, since $\E(Z_n^2)=n$, the sequence does not converge to zero in mean square.
+\end{example}
+
+\begin{definition}[Convergence in Distribution]\label{def-distribution-convergence}
+	Let $F_{Z_n}$ and $F_Z$ be the \gls{cdf} of $Z_n$ and $Z$ respectively.
+	We say that $Z_n$ \emph{converges in distribution} to $Z$, written $Z_n\dto Z$, if
+	\begin{align}
+		F_{Z_n}(z)\to F_Z(z)
+		\qquad\text{for all }z\in\reals\text{ at which }F_Z(z)\text{ is continuous}.
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	One technical difference between convergence in probability and convergence in distribution is that
+	the latter does not require the random variable to be defined on the same probability space,
+	as we only require the \glspl{cdf} to converge at continuous points.
+\end{remark}
+
+\begin{example}
+	Consider the sequence of random variables $Z_n$ with \glspl{cdf}
+	\begin{align}
+		F_{Z_n}(z) =
+		\begin{cases}
+			0, & z < -\frac1n \\
+			\frac12 + \frac{n}{2} z, & z \in \left[-\frac1n,\frac1n\right] \\
+			1, & z > \frac1n
+		\end{cases}
+	\end{align}
+	It is easy to see that $F_{Z_n}(z)\to F_Z(z)$ for all $z\neq0$, where $F_Z$ is the \gls{cdf} of the constant random variable $Z=0$.
+	Note that $F_{Z_n}(0)=1/2\neq F_Z(0)=1$.
+\end{example}
+
+\begin{proposition}
+	If $Z_n\pto Z$, then $Z_n\dto Z$.
+\end{proposition}
+\begin{proof}
+	Fix a point $z$ at which $F_Z$ is continuous and let $\delta>0$.
+	If $|Z_n-Z|\le\delta$, then $Z\le z-\delta$ implies $Z_n\le z$,
+	and $Z_n\le z$ implies $Z\le z+\delta$.
+	Consequently,
+	\begin{align*}
+		F_Z(z-\delta)-\Pr(|Z_n-Z|>\delta)
+		\le F_{Z_n}(z)
+		\le F_Z(z+\delta)+\Pr(|Z_n-Z|>\delta).
+	\end{align*}
+	Since $Z_n\pto Z$, the probability terms tend to zero, giving
+	\begin{align*}
+		F_Z(z-\delta)
+		\le\liminf_{n\to\infty}F_{Z_n}(z)
+		\le\limsup_{n\to\infty}F_{Z_n}(z)
+		\le F_Z(z+\delta).
+	\end{align*}
+	Letting $\delta\to0$, continuity at $z$ makes both outer bounds converge to $F_Z(z)$.
+	Thus $F_{Z_n}(z)\to F_Z(z)$ at every continuity point of $F_Z$.
+\end{proof}
+
+\begin{proposition}\label{prop-d-to-p}
+	If $Z_n\dto c$ for a constant $c$, then $Z_n\pto c$.
+\end{proposition}
+\begin{proof}
+	The \gls{cdf} of the constant $c$ is zero below $c$ and one at or above $c$.
+	For any $\varepsilon>0$, both $c-\varepsilon$ and $c+\varepsilon$ are continuity points of this \gls{cdf}.
+	Convergence in distribution therefore gives
+	$F_{Z_n}(c-\varepsilon)\to0$
+	and
+	$F_{Z_n}(c+\varepsilon)\to1$.
+	Hence,
+	\begin{align*}
+		\Pr(|Z_n-c|>\varepsilon)
+		&=\Pr(Z_n<c-\varepsilon)+\Pr(Z_n>c+\varepsilon)\\
+		&\le F_{Z_n}(c-\varepsilon)+1-F_{Z_n}(c+\varepsilon)\to0.
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{remark}[Chain of Implications]
+	Let $Z_n$ be a sequence of random variables and $Z$ be a random variable or constant.
+	Then we have the following chain of implications:
+	\begin{align}
+		Z_n\msto Z
+		\implies Z_n\pto Z
+		\implies Z_n\dto Z.
+	\end{align}
+	The converse does not hold in general.
+	\autoref{ex-p-not-ms} shows that the first implication is strict;
+	And unless $Z$ is a constant, convergence in distribution does not imply convergence in probability.
+\end{remark}
+
+\section{Useful Theorems}
+
+\begin{lemma}[Concentration around the mean]\label{lem-vanishing-variance}
+	Let $\{Z_n\}$ be a sequence of random variables with finite variance
+	for every $n$ and $\var(Z_n)\to0$.
+	Then
+	\begin{align}
+		Z_n-\E(Z_n)\pto0.
+	\end{align}
+	If also $\E(Z_n)\to c$ for a constant $c$, then $Z_n\pto c$.
+\end{lemma}
+\begin{proof}
+	Chebyshev's inequality gives, for every $\varepsilon>0$,
+	\begin{align*}
+		\Pr(|Z_n-\E(Z_n)|>\varepsilon)
+		\le\frac{\var(Z_n)}{\varepsilon^2}\to0.
+	\end{align*}
+	If $\E(Z_n)\to c$, then for sufficiently large $n$,
+	$|\E(Z_n)-c|<\varepsilon/2$.
+	Hence, we have
+	\begin{align*}
+		\Pr(|Z_n-c|>\varepsilon)
+		&\le \Pr(|Z_n-\E(Z_n)|+|\E(Z_n)-c|>\varepsilon) \\
+		&\le \Pr(|Z_n-\E(Z_n)|>\varepsilon/2)
+		\le \frac{4\var(Z_n)}{\varepsilon^2}\to0.
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{theorem}[\gls{wlln}]\label{thm-wlln}
+	Let $\{X_i\}_{i=1}^{n}$ be \gls{iid} with mean $\mu$ and finite variance $\sigma^2$.
+	Then the sample mean $\bar X_n=n\inv\sum_{i=1}^nX_i$ is consistent for $\mu$.
+\end{theorem}
+\begin{proof}
+	Apply \autoref{lem-vanishing-variance} with $Z_n=\bar X_n$ and $c=\mu$.
+\end{proof}
+
+\begin{remark}
+	The finite second moment assumption in \autoref{thm-wlln} can be dropped.
+	In fact, \gls{wlln} holds for \gls{iid} random variables with finite first moment.
+	That is, if $\{X_i\}_{i=1}^{n}$ is \gls{iid} with $\E(X_i)=\mu$ finite, then $\bar X_n\pto\mu$.
+	However, the proof of this stronger result is more involved.
+\end{remark}
+
+\begin{theorem}[Continuous Mapping]\label{thm-continuous-mapping}
+	Let $Z_n\in\reals^k$ be random vectors and $Z\in\reals^k$ be a random vector.
+	Let $g$ be a continuous function.
+	Then we have
+	\begin{align}
+		Z_n\pto Z  &\implies g(Z_n)\pto g(Z), \\
+		Z_n\dto Z  &\implies g(Z_n)\dto g(Z).
+	\end{align}
+\end{theorem}
+\begin{proof}
+	Omitted.
+\end{proof}
+
+\begin{example}
+	If $(Z_{1n},Z_{2n})\T\pto (Z_{1,0},Z_{2,0})\T\in\reals^2$.
+	By \autoref{thm-continuous-mapping}, we have
+	\begin{align}
+		Z_{1n}+Z_{2n}&\pto Z_{1,0}+Z_{2,0}, \\
+		Z_{1n}Z_{2n}&\pto Z_{1,0}Z_{2,0}, \\
+		Z_{1n}/Z_{2n}&\pto Z_{1,0}/Z_{2,0}\quad(Z_{2,0}\neq0)
+	\end{align}
+	by applying the continuous mapping theorem to the functions
+	$g(x,y)=x+y$, $g(x,y)=xy$, and $g(x,y)=x/y$ respectively to $(Z_{1n},Z_{2n})$.
+\end{example}
+
+\begin{theorem}[Slutsky's Theorem]\label{thm-slutsky}
+	Let $Z_n$ and $W_n$ be sequences of random variables.
+	If $Z_n\dto Z$ and $W_n\pto c$ for a constant $c$, then
+	\begin{align}
+		Z_n+W_n\dto Z+c,
+		\qquad
+		Z_nW_n\dto cZ,
+		\qquad
+		Z_n/W_n\dto Z/c\quad(c\neq0).
+	\end{align}
+\end{theorem}
+\begin{proof}[Sketch of Proof]
+	Convergence in probability implies $W_n\dto c$.
+	One can show that $(Z_n,W_n)\T\dto(Z,c)\T$.
+	Then apply \autoref{thm-continuous-mapping} to the functions $g(x,y)=x+y$, $g(x,y)=xy$, and $g(x,y)=x/y$ respectively to $(Z_n,W_n)\T$.
+\end{proof}
+
+\begin{theorem}[Lindeberg-Lévy \gls{clt}]\label{thm-clt}
+	Let $\{X_i\}_{i=1}^{n}$ be \gls{iid} with mean $\mu$ and finite variance $\sigma^2$.
+	Then
+	\begin{align}
+		\sqrt{n}(\bar X_n-\mu)\dto\normaldistribution(0,\sigma^2).
+	\end{align}
+\end{theorem}
+\begin{proof}
+	Omitted.
+\end{proof}
+
+\begin{theorem}[Delta Method]\label{thm-delta-method}
+	Let $Z_n\in\reals^k$ be a sequence of random vectors and $Z\in\reals^k$ be a fixed vector.
+	Let $g:\reals^k\to\reals^m$ be continuously differentiable in a neighborhood of $Z$, with Jacobian matrix $G(Z)\in\reals^{m\times k}$.
+	If $\sqrt{n}(Z_n-Z)\dto Z_0$, then
+	\begin{align}
+		\sqrt{n}(g(Z_n)-g(Z))\dto G(Z)Z_0.
+	\end{align}
+\end{theorem}
+\begin{proof}
+	Since $\sqrt{n}(Z_n-Z)=O_p(1)$, we have $Z_n-Z=O_p(n^{-1/2})$ and hence $Z_n\pto Z$.
+	Since $Z_n\pto Z$, it suffices to work in the neighborhood where $g$ is continuously differentiable.
+	The integral form of the mean value theorem gives the matrix identity
+	\begin{align*}
+		g(Z_n)-g(Z)=H_n(Z_n-Z)
+		&\quad\text{where}\quad
+		H_n\coloneqq h(Z_n)\coloneqq \int_0^1G\big(Z+t(Z_n-Z)\big)\diff{t}.
+	\end{align*}
+	Continuity of $G$ makes $h$ continuous at $Z$ with $h(Z)=G(Z)$.
+	Since $Z_n\pto Z$, \nameref{thm-continuous-mapping} gives $h(Z_n)\pto h(Z)$, i.e., $H_n-G(Z)=o_p(1)$.
+	Hence, we have
+	\begin{align*}
+		\sqrt{n}(g(Z_n)-g(Z))
+		&= \sqrt{n} H_n(Z_n-Z) \\
+		&= G(Z)\sqrt{n}(Z_n-Z) + \underbrace{\sqrt{n} \underbrace{(H_n-G(Z))}_{o_p(1)} \underbrace{(Z_n-Z)}_{O_p(n^{-1/2})}}_{o_p(1)}.
+	\end{align*}
+	The first term converges in distribution to $G(Z)Z_0$ by the continuous mapping theorem,
+	while the second converges in probability to zero.
+	\nameref{thm-slutsky} gives the stated result.
+\end{proof}
+
+\end{document}

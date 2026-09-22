@@ -1,0 +1,567 @@
+%!TEX program = xelatex 
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Notes: \glsentryshort{ols} Large Sample Properties}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\maketitle
+
+\noindent
+Large sample properties describe how an estimator behaves as the sample size grows,
+which requires different assumptions from finite sample properties to derive.
+% First, we state the two concepts we will rely on the most: consistency and asymptotic normality.
+
+\section{Two Asymptotic Concepts}
+
+\subsection{Consistency}
+
+\begin{definition}[Consistency]
+	A sequence of estimators $\{\widehat\theta_n\}_{n=1}^{\infty}$
+	is said to be \emph{consistent} for the true parameter $\theta_0$ if $\widehat\theta_n\pto\theta_0$.
+\end{definition}
+
+\begin{remark}[Interpretation of Consistency]
+	An estimator is said to be consistent if as sample size grows,
+	the estimator will be arbitrarily close to the true parameter with probability approaching one.
+\end{remark}
+
+\begin{lemma}[A Sufficient Condition for Consistency]\label{cor-consistency}
+	Suppose $\widehat\theta_n$ has finite variance,
+	$\E(\widehat\theta_n)\to\theta_0$, and $\var(\widehat\theta_n)\to0$.
+	Then $\widehat\theta_n$ is consistent for $\theta_0$.
+	In particular, an unbiased estimator with variance tending to zero is consistent.
+\end{lemma}
+\begin{proof}
+	Markov's inequality and the bias-variance decomposition give
+	\begin{align*}
+		\Pr(|\widehat\theta_n-\theta_0|>\varepsilon)
+		&\le\frac{\E[(\widehat\theta_n-\theta_0)^2]}{\varepsilon^2}
+		=\frac{\var(\widehat\theta_n)+(\E(\widehat\theta_n)-\theta_0)^2}{\varepsilon^2}
+		\to0
+		\quad\forall \varepsilon>0.
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{example}[The Sample Mean]\label{eg-sample-mean}
+	Let $X_1,...,X_n$ be \gls{iid} with mean $\mu$ and finite variance $\sigma^2$.
+	For $\bar X_n=n\inv\sum_{i=1}^nX_i$,
+	\begin{align*}
+		\E(\bar X_n)=\mu,
+		\qquad
+		\var(\bar X_n)=\frac{\sigma^2}{n}\to0.
+	\end{align*}
+	Consequently, $\bar X_n\pto\mu$ by \autoref{cor-consistency}.
+	This convergence of the sample average to the population mean is an instance of the \emph{\gls{wlln}}.
+\end{example}
+
+\begin{remark}[Conditions for \gls{wlln}]
+	In fact, for \gls{iid} $X_i$, a finite first absolute moment is sufficient for the \gls{wlln} to hold.
+	That is, $\bar X_n\pto\E X_i$ whenever $\{X_i\}_{i=1}^{\infty}$ is \gls{iid} and $\E|X_i|<\infty$.
+\end{remark}
+
+\begin{example}[Unbiasedness and Consistency]
+	Let $X_1,...,X_n$ be \gls{iid} with mean $\mu\neq0$ and finite variance $\sigma^2>0$.
+	Consider the following two estimators of $\mu$:
+	\begin{align}
+		\widehat\mu_n=X_n
+		\quad\text{and}\quad
+		\widetilde\mu_n=\frac{n-1}{n}\bar X_n.
+	\end{align}
+	Note that $\widehat\mu_n$ is unbiased but inconsistent,
+	while $\widetilde\mu_n$ is biased but consistent.
+\end{example}
+
+\subsection{Asymptotic Normality}
+
+% \begin{definition}[Asymptotic Normality]
+% 	A sequence of scalar estimators is \emph{asymptotically normal} at rate $\sqrt{n}$ if
+% 	\begin{align*}
+% 		\sqrt{n}(\widehat\theta_n-\theta_0)\dto\normaldistribution(0,V),
+% 		\qquad 0<V<\infty.
+% 	\end{align*}
+% 	For large $n$, this suggests the approximation
+% 	$\widehat\theta_n\approx\normaldistribution(\theta_0,V/n)$.
+% \end{definition}
+
+\begin{theorem}[Lindeberg-Lévy \gls{clt}]\label{thm-clt}
+	Let $\{X_i\}_{i=1}^{\infty}$ be \gls{iid} with mean $\mu$ and variance $0<\sigma^2<\infty$.
+	Then
+	\begin{align}
+		\sqrt{n}(\bar X_n-\mu)\dto\normaldistribution(0,\sigma^2).
+	\end{align}
+\end{theorem}
+
+\begin{theorem}[Multivariate Lindeberg-Lévy \gls{clt}]\label{thm-clt-multi}
+	Let $X_i\in\reals^k$ be \gls{iid} random vectors with mean $\mu$
+	and finite covariance matrix $\Sigma\coloneqq\E[(X_i-\mu)(X_i-\mu)\T]\in\reals^{k\times k}$.
+	Then
+	\begin{align}
+		\sqrt{n}(\bar X_n-\mu)\dto\normaldistribution(0,\Sigma).
+	\end{align}
+\end{theorem}
+
+\begin{remark}[Standardization and Rescaling]
+	The \gls{clt} centers the sample mean by subtracting $\mu$ and rescales it by $\sqrt{n}$.
+	In \autoref{eg-sample-mean}, we saw that the variance of $\bar X_n$ converges to zero as $n\to\infty$.
+	To obtain a non-degenerate limiting distribution, we need to rescale the sample mean by an appropriate factor.
+	In this case, the appropriate factor turns out to be $\sqrt{n}$.
+	Dividing further by $\sigma$ gives a standard normal limit.
+\end{remark}
+
+\begin{remark}[Why \gls{clt}?]
+	\gls{clt} allows us to \emph{approximate} the distribution of sample average under suitable conditions,
+	\emph{regardless of the underlying distribution of the samples}.
+	If we could know the exact distribution of the sample mean,
+	we would have done that instead of using \gls{clt}.
+\end{remark}
+
+\section{\glsentryshort{ols} Large Sample Properties}
+
+\subsection{Assumptions and Sample Moments}
+
+Consider the model
+\begin{align}\label{eq-model}
+	Y_i=X_i\T\beta_0+e_i,
+	\qquad Y=X\beta_0+e,
+\end{align}
+where $X_i\in\reals^k$ and $\beta_0\in\reals^k$ is fixed.
+The number of regressors $k$ stays fixed as $n$ grows.
+The matrix $X$ has rows $X_i\T$; an intercept, if present, is included in $X_i$.
+
+\begin{assumption}[Conditions for Consistency]\label{ass-consistency}
+	\leavevmode
+	\begin{enumerate}
+		\item The observations $\{(Y_i,X_i)\}_{i=1}^{\infty}$ are \gls{iid}.
+		\item $\E(Y_i^2)<\infty$ and $\E\|X_i\|^2<\infty$.
+		\item $Q_{xx}\coloneqq\E(X_iX_i\T)$ is positive definite.
+		\item $\E(X_ie_i)=0$.
+	\end{enumerate}
+\end{assumption}
+
+\begin{remark}[Moment Existence versus Orthogonality]
+	Part 2 of \autoref{ass-consistency} guarantees that $e_i$ has a finite second moment,
+	since $e_i=Y_i-X_i\T\beta_0$.
+	Part 4 separately requires that $e_i$ be orthogonal to $X_i$.
+\end{remark}
+
+\begin{lemma}\label{lem-sample-moments}
+	Under \autoref{ass-consistency}, define the moment vector and the sample cross-product matrix
+	\begin{align}\label{eq-sample-moments}
+		g_i\coloneqq X_ie_i,\quad
+		\bar g_n\coloneqq\frac1n\sum_{i=1}^ng_i=\frac{X\T e}{n},
+		\quad\text{and}\quad
+		\widehat Q_{xx}\coloneqq\frac1n\sum_{i=1}^nX_iX_i\T=\frac{X\T X}{n}.
+	\end{align}
+	Then, we have $\E g_i=0$, $\bar g_n\pto0$, and $\widehat Q_{xx}\pto Q_{xx}$.
+\end{lemma}
+\begin{proof}
+	By part 2 of \autoref{ass-consistency} and $e_i=Y_i-X_i\T\beta_0$,
+	\begin{align*}
+		\E(e_i^2)\le2\E(Y_i^2)+2\|\beta_0\|^2\E\|X_i\|^2<\infty.
+	\end{align*}
+	Cauchy-Schwarz and the same moment assumption then give
+	\begin{align*}
+		\E\|g_i\|
+		=\E(\|X_i\||e_i|)
+		\le\big[\E\|X_i\|^2\,\E(e_i^2)\big]^{1/2}<\infty.
+	\end{align*}
+	Likewise, $\E|X_{ij}X_{i\ell}|\le[\E(X_{ij}^2)\E(X_{i\ell}^2)]^{1/2}<\infty$,
+	so every entry of $X_iX_i\T$ has a finite first absolute moment.
+	Part 1 implies that $g_i$ and $X_iX_i\T$ are each \gls{iid} across observations,
+	and part 4 gives $\E(g_i)=0$.
+	The \gls{wlln} therefore applies entry by entry, yielding
+	\begin{align}\label{eq-moment-limits}
+		\bar g_n\pto0
+		\quad\text{and}\quad
+		\widehat Q_{xx}\pto Q_{xx}.
+	\end{align}
+	Part 3 is not needed for these limits; it will allow us to invert $Q_{xx}$ in the consistency proof.
+\end{proof}
+
+\begin{remark}[Notation $g_i$]
+	Here the notation $g_i$ emphasizes the moment condition $\E(g_i)=0$.
+	This notation will carry over to \gls{gmm}, \gls{mle}, and other frameworks throughout the first year econometrics sequence. 
+\end{remark}
+
+\begin{remark}[Sufficient but \textsc{not} Necessary Conditions]\label{rem-sufficient-conditions}
+	We only require finite second moments of $Y_i$ and $X_i$ to get finite first moments of $g_i$.
+	That is, \autoref{ass-consistency} is but one \emph{sufficient} set of conditions for the
+	results in \autoref{lem-sample-moments} to hold.
+	% They need not give finite second moments of $g_i$.
+	% The latter will be needed for the \gls{clt}, but not for consistency.
+\end{remark}
+
+\subsection{Consistency of \glsentryshort{ols}}
+
+\begin{theorem}[\gls{ols} Consistency]\label{thm-ols-consistency}
+	Under \autoref{ass-consistency}, $\widehat\beta_n\pto\beta_0$.
+\end{theorem}
+\begin{proof}
+	Substituting \eqref{eq-model} into the \gls{ols} formula gives
+	\begin{align}
+		\widehat\beta_n
+		&=(X\T X)\inv X\T(X\beta_0+e)\\
+		&=\beta_0+\left(\frac{X\T X}{n}\right)\inv\frac{X\T e}{n}\\
+		&=\beta_0+\left(\frac1n\sum_{i=1}^{n} X_i X_i\T\right)\inv\left(\frac1n\sum_{i=1}^{n} X_i e_i\right) \label{eq-ols-error}
+		=\beta_0+\widehat Q_{xx}\inv\bar g_n.
+	\end{align}
+	Matrix inversion is continuous at the positive definite matrix $Q_{xx}$.
+	By the continuous mapping theorem and \autoref{lem-sample-moments}, we have
+	$\widehat Q_{xx}\inv\pto Q_{xx}\inv$.
+	Therefore, by \autoref{lem-sample-moments} and continuous mapping, we have
+	\begin{align*}
+		\widehat\beta_n-\beta_0
+		&=\widehat Q_{xx}\inv\bar g_n\pto Q_{xx}\inv0=0.
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{remark}[Orthogonality versus Conditional Mean Zero]
+	The consistency proof uses $\E(X_ie_i)=0$.
+	Conditional mean zero, $\E(e_i\given X_i)=0$, implies this condition by the \gls{lie},
+	but is stronger than necessary.
+	In particular, $\beta_0$ can be the population linear projection coefficient
+	even if the conditional expectation of $Y_i$ is nonlinear in $X_i$.
+	Population orthogonality alone does not generally imply finite sample unbiasedness.
+\end{remark}
+
+\begin{remark}[Identification and Inverting the Sample Matrix]
+	Positive definiteness of $Q_{xx}$ ensures that $Q_{xx}\inv$ exists and
+	$\widehat Q_{xx}\inv\pto Q_{xx}\inv$.
+	Thus multiplying $\bar g_n\pto0$ by the inverse sample matrix preserves convergence to zero.
+	Full rank and orthogonality serve different purposes: the former identifies the coefficients,
+	while the latter makes the sample moment converge to zero at $\beta_0$.
+	Population full rank need not guarantee full rank in every finite sample,
+	but the probability that $X\T X/n$ is nonsingular tends to one.
+\end{remark}
+
+\subsection{Asymptotic Normality of \glsentryshort{ols}}
+
+\begin{assumption}[Conditions for Asymptotic Normality]\label{ass-fourth-moments}
+	In addition to \autoref{ass-consistency}, suppose
+	\begin{align*}
+		\E(Y_i^4)<\infty
+		\quad\text{and}\quad
+		\E\|X_i\|^4<\infty.
+	\end{align*}
+\end{assumption}
+
+\begin{lemma}[Second Moment of $g_i$]\label{lem-second-moment}
+	Under \autoref{ass-fourth-moments}, $\E\|g_i\|^2<\infty$,
+	which implies that $\Omega\coloneqq\E g_i g_i\T$ exists and is finite.
+\end{lemma}
+\begin{proof}
+	Since $e_i=Y_i-X_i\T\beta_0$, \autoref{ass-fourth-moments} gives
+	\begin{align*}
+		\E(e_i^4)\le8\E(Y_i^4)+8\|\beta_0\|^4\E\|X_i\|^4<\infty.
+	\end{align*}
+	Cauchy-Schwarz then implies
+	\begin{align*}
+		\E\|g_i\|^2
+		=\E(\|X_i\|^2e_i^2)
+		\le\big[\E\|X_i\|^4\,\E(e_i^4)\big]^{1/2}<\infty.
+	\end{align*}
+	For any coordinates $j,\ell$, Cauchy-Schwarz also gives
+	\begin{align*}
+		\E|g_{ij}g_{i\ell}|
+		\le[\E(g_{ij}^2)\E(g_{i\ell}^2)]^{1/2}
+		\le\E\|g_i\|^2<\infty.
+	\end{align*}
+	Hence every entry of $\Omega=\E(g_ig_i\T)$ exists and is finite.
+	Since $\E(g_i)=0$ by \autoref{ass-consistency}, $\Omega=\var(g_i)$.
+\end{proof}
+
+\begin{remark}[Why 4th Moment?]
+	Similar to \autoref{rem-sufficient-conditions},
+	\autoref{ass-fourth-moments} is but a set of \emph{sufficient} conditions for the existence of the second moment of $g_i$.
+	The stronger moment assumption supplies finite variance for the products $X_ie_i$,
+	allowing us to apply the \gls{clt}.
+\end{remark}
+
+\begin{remark}
+	Since $\E(g_i)=0$ and $\Omega=\E g_i g_i\T$ is finite,
+	by multivariate \gls{clt}
+	\begin{align}\label{eq-moment-clt}
+		\sqrt{n}(\bar g_n-\E g_i)
+		=\frac1{\sqrt{n}}\sum_{i=1}^ng_i
+		\dto\normaldistribution(0,\Omega).
+	\end{align}
+	We will use this result to derive the asymptotic distribution of $\widehat\beta_n$.
+\end{remark}
+
+\begin{theorem}[\gls{ols} Asymptotic Normality]\label{thm-ols-normality}
+	Under \autoref{ass-consistency} and \autoref{ass-fourth-moments},
+	\begin{align}\label{eq-ols-clt}
+		\sqrt{n}(\widehat\beta_n-\beta_0)
+		\dto\normaldistribution(0,V)
+		\quad\text{where}\quad
+		V=Q_{xx}\inv\Omega Q_{xx}\inv.
+	\end{align}
+\end{theorem}
+\begin{proof}
+	From \eqref{eq-ols-error},
+	\begin{align*}
+		\sqrt{n}(\widehat\beta_n-\beta_0)
+		=\widehat Q_{xx}\inv\sqrt{n} \bar g_n.
+	\end{align*}
+	We have $\widehat Q_{xx}\inv\pto Q_{xx}\inv$ demonstrated in \autoref{thm-ols-consistency} and
+	$\sqrt{n}\,\bar g_n\dto\normaldistribution(0,\Omega)$ demonstrated in \eqref{eq-moment-clt}.
+	Then, by Slutsky's theorem we have
+	\begin{align}
+		\sqrt{n}(\widehat\beta_n-\beta_0)
+		&=\widehat Q_{xx}\inv\sqrt{n} \bar g_n
+		\dto Q_{xx}\inv \normaldistribution(0,\Omega)
+		= \normaldistribution(0,Q_{xx}\inv\Omega Q_{xx}\inv).
+		\qedhere
+	\end{align}
+\end{proof}
+
+\begin{remark}[What is the Asymptotic Variance?]
+	In \eqref{eq-ols-clt}, $V$ is known as the \emph{asymptotic variance} of $\widehat\beta_n$,
+	which is the covariance of the limiting distribution of the
+	\emph{scaled error} $\sqrt{n}(\widehat\beta_n-\beta_0)$.
+	Compare this to the finite sample covariance of $\widehat\beta_n$:
+	\begin{align*}
+		\var(\widehat\beta_n\given X)
+		=\frac1n \left(\frac{X\T X}n \right)\inv \left(\frac{X\T D X}n \right)\left(\frac{X\T X}n \right)\inv
+		\quad\text{where}\quad
+		D=\var(e\given X).
+	\end{align*}
+	Matrix $V$ appears to be the population analog of the finite sample covariance scaled by $n$.
+	We state precisely the relation between $V$ and $\var(\widehat\beta_n\given X)$ in the next section.
+\end{remark}
+
+% \begin{remark}[The Sandwich Form]
+% 	The matrix $V=Q_{xx}\inv\Omega Q_{xx}\inv$ has the same sandwich structure
+% 	as the finite sample conditional covariance
+% 	\begin{align*}
+% 		\var(\widehat\beta_n\given X)
+% 		=(X\T X)\inv X\T D X(X\T X)\inv,
+% 		\qquad D=\var(e\given X).
+% 	\end{align*}
+% 	The finite sample formula conditions on the observed design.
+% 	The asymptotic formula uses population moments and describes the limiting distribution
+% 	under repeated sampling of both outcomes and regressors.
+% \end{remark}
+
+\section{Estimating the Asymptotic Variance}
+
+The normal approximation becomes useful once we estimate its covariance.
+We discuss two cases: homoskedastic errors and heteroskedastic errors.
+% Given an estimator $\widehat\Omega$ of $\Omega$, define
+% \begin{align}\label{eq-v-estimator}
+% 	\widehat V=\widehat Q_{xx}\inv\widehat\Omega\widehat Q_{xx}\inv.
+% \end{align}
+% If $\widehat\Omega\pto\Omega$, continuity of matrix multiplication and inversion gives $\widehat V\pto V$.
+
+\subsection{Homoskedastic Errors}
+
+\begin{assumption}[Constant Conditional Second Moment]\label{ass-homoskedasticity}
+	Suppose, in addition, that
+	\begin{align}\label{eq-constant-second-moment}
+		\E(e_i^2\given X_i)=\sigma^2.
+	\end{align}
+\end{assumption}
+
+\begin{lemma}[Consistency of the Residual Variance]\label{lem-residual-variance}
+	Let $\widehat e_i=Y_i-X_i\T\widehat\beta_n$.
+	For $n>k$, define the estimator
+	\begin{align*}
+		\widehat\sigma^2=\frac1{n-k}\sum_{i=1}^n\widehat e_i^2.
+		% \quad\text{and}\quad
+		% \widehat\Omega_{\mathrm{hom}}=\widehat\sigma^2\widehat Q_{xx}.
+	\end{align*}
+	Under \autoref{ass-consistency}, $\widehat\sigma^2\pto\E(e_i^2)$.
+	In particular, under \eqref{eq-constant-second-moment}, $\widehat\sigma^2\pto\sigma^2$.
+\end{lemma}
+\begin{proof}
+	The \gls{ols} residual is $\widehat e=Y-X\widehat\beta_n$.
+	Using \eqref{eq-ols-error}, its squared length is
+	\begin{align*}
+		\widehat e\T\widehat e
+		&=e\T\big[I_n-X(X\T X)\inv X\T\big]e,\\
+		\frac{\widehat e\T\widehat e}{n}
+		&=\frac1n\sum_{i=1}^n e_i^2-\bar g_n\T\widehat Q_{xx}\inv\bar g_n.
+	\end{align*}
+	The first term converges to $\E(e_i^2)$ by the \gls{wlln},
+	since parts 1 and 2 of \autoref{ass-consistency} give \gls{iid} errors with finite second moments.
+	The second converges to zero because $\bar g_n\pto0$ and $\widehat Q_{xx}\inv\pto Q_{xx}\inv$.
+	Finally, $k$ is fixed, so
+	\begin{align*}
+		\widehat\sigma^2
+		=\frac{n}{n-k}\frac{\widehat e\T\widehat e}{n}\pto\E(e_i^2).
+	\end{align*}
+	Under \autoref{ass-homoskedasticity}, the \gls{lie} gives $\E(e_i^2)=\sigma^2$.
+\end{proof}
+
+\begin{remark}
+	With conditional mean zero, conditional homoskedasticity, and a full-rank sample design,
+	dividing by $n-k$ gives an unbiased estimator of $\sigma^2$ in finite samples.
+	For consistency, dividing by $n$ or $n-k$ gives the same limit when $k$ is fixed.
+\end{remark}
+
+\begin{lemma}[Conventional Asymptotic Variance Estimator]
+	Under \autoref{ass-consistency} and \autoref{ass-homoskedasticity}, we have $V = \sigma^2 Q_{xx}\inv$.
+	Hence, $\widehat V_{\mathrm{hom}}=\widehat\sigma^2\widehat Q_{xx}\inv$ is consistent for $V$.
+\end{lemma}
+\begin{proof}
+	By the \gls{lie} and \autoref{ass-homoskedasticity},
+	\begin{align*}
+		\Omega
+		=\E\big[X_iX_i\T\E(e_i^2\given X_i)\big]
+		=\sigma^2Q_{xx}.
+	\end{align*}
+	Substituting into $V=Q_{xx}\inv\Omega Q_{xx}\inv$ gives $V=\sigma^2Q_{xx}\inv$.
+	By \autoref{lem-residual-variance}, $\widehat\sigma^2\pto\sigma^2$;
+	by \autoref{lem-sample-moments} and continuous mapping,
+	$\widehat Q_{xx}\inv\pto Q_{xx}\inv$.
+	Therefore,
+	\begin{align*}
+		\widehat V_{\mathrm{hom}}
+		&=\widehat\sigma^2\widehat Q_{xx}\inv
+		\pto\sigma^2Q_{xx}\inv=V.
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{remark}[Variance versus Second Moment]
+	A conditional variance measures dispersion around the conditional mean,
+	whereas a conditional second moment measures squared distance from zero.
+	Write $m(X_i)=\E(e_i\given X_i)$. Then
+	\begin{align*}
+		\E(e_i^2\given X_i)
+		=\var(e_i\given X_i)+m(X_i)^2.
+	\end{align*}
+	These quantities coincide when $m(X_i)=0$.
+	With only $\var(e_i\given X_i)=\tau^2$, we have
+	\begin{align*}
+		\Omega
+		=\E[X_iX_i\T e_i^2]
+		=\E\big[X_iX_i\T\E(e_i^2\given X_i)\big]
+		=\tau^2Q_{xx}+\E[X_iX_i\T m(X_i)^2],
+	\end{align*}
+	so we cannot generally replace $\Omega$ by $\tau^2Q_{xx}$.
+	This is why \autoref{ass-homoskedasticity} restricts the conditional \emph{second moment}.
+	It also clarifies the earlier comparison with finite sample conditional covariance:
+	under conditional mean zero, $n\var(\widehat\beta_n\given X)\pto V$ under our moment assumptions.
+	Otherwise, the conditional covariance omits the contribution of $m(X_i)$,
+	which varies as we repeatedly sample the regressors.
+\end{remark}
+
+\begin{remark}[Conditional versus Unconditional Homoskedasticity]
+	Unconditional homoskedasticity means that $\var(e_i)$ is the same across observations $i$.
+	Under \gls{iid} sampling, this already follows from identical distributions.
+	Conditional homoskedasticity instead says that $\var(e_i\given X_i=x)$
+	does not change with the regressor value $x$.
+	Thus an identical mixture of low- and high-variance observations can have a common
+	unconditional variance while its conditional variance varies with $x$.
+	The law of total variance relates the two:
+	\begin{align*}
+		\var(e_i)
+		=\E[\var(e_i\given X_i)]+\var[\E(e_i\given X_i)]
+		.
+	\end{align*}
+	Under conditional mean zero, the second term vanishes,
+	but the average of the conditional variances can still hide variation across $x$.
+	Unconditional homoskedasticity alone therefore does \emph{not} justify $\widehat V_{\mathrm{hom}}$.
+	In general,
+	\begin{align*}
+		\widehat V_{\mathrm{hom}}\pto\E(e_i^2)Q_{xx}\inv,
+		\qquad
+		V=Q_{xx}\inv\E(X_iX_i\T e_i^2)Q_{xx}\inv.
+	\end{align*}
+	These agree only if $\E(X_iX_i\T e_i^2)=\E(e_i^2)Q_{xx}$,
+	which does not follow from equal unconditional variances.
+\end{remark}
+
+\subsection{Heteroskedastic Errors}
+
+Now we do away with \autoref{ass-homoskedasticity}.
+Without \eqref{eq-constant-second-moment},
+estimate the middle  of the sandwich $\Omega=\E(X_iX_i\T e_i^2)$ by its sample analogue:
+\begin{align}\label{eq-omega-hc0}
+	\widehat\Omega_{\mathrm{HC0}}
+	= \frac1n\sum_{i=1}^n \widehat g_i \widehat g_i\T
+	= \frac1n\sum_{i=1}^nX_iX_i\T\widehat e_i^2
+	\quad\text{with}\quad
+	\widehat g_i\coloneqq X_i\widehat e_i.
+\end{align}
+The resulting asymptotic variance estimator is
+\begin{align}\label{eq-hc0-covariance}
+	\widehat V_{\mathrm{HC0}}
+	=\left(\frac1n X\T X\right)\inv
+	\left(\frac1n \sum_{i=1}^nX_iX_i\T\widehat e_i^2\right)
+	\left(\frac1n X\T X\right)\inv.
+\end{align}
+\autoref{eq-hc0-covariance} is known as \textsc{White's heteroskedasticity-consistent covariance estimator}, usually called HC0.
+Since its introduction in the 1980s,
+this estimator and its variants have become widely used for heteroskedasticity-robust inference.
+In a way, we have been whitewashed ever since.
+
+\begin{proposition}[Consistency of HC0]
+	Under \autoref{ass-fourth-moments},
+	$\widehat V_{\mathrm{HC0}}\pto V$.
+\end{proposition}
+\begin{proof}
+	The \gls{wlln} gives
+	\begin{align}
+		\frac1n\sum_iX_iX_i\T e_i^2
+		= \frac1n\sum_i g_i g_i\T
+		\pto
+		\E(X_iX_i\T e_i^2)
+		= \Omega.
+	\end{align}
+	It remains to justify replacing $e_i$ by $\widehat e_i$.
+	With $\Delta_n=\widehat\beta_n-\beta_0=o_p(1)$,
+	\begin{align}
+		\widehat e_i^2-e_i^2
+		=-2e_iX_i\T\Delta_n+(X_i\T\Delta_n)^2.
+	\end{align}
+	Using the Euclidean norm for vectors and its induced matrix norm,
+	\begin{align}
+		\left\|\frac1n\sum_iX_iX_i\T(\widehat e_i^2-e_i^2)\right\|
+		\le2\|\Delta_n\|\frac1n\sum_i\|X_i\|^3|e_i|
+		+\|\Delta_n\|^2\frac1n\sum_i\|X_i\|^4.
+	\end{align}
+	The fourth moments imply that both sample averages have finite population means.
+	For the mixed moment, use $\|X_i\|^3|e_i|\le(3\|X_i\|^4+e_i^4)/4$.
+	Both sample averages are therefore $O_p(1)$ by the \gls{wlln}.
+	The bound is $o_p(1)$, proving $\widehat\Omega_{\mathrm{HC0}}\pto\Omega$.
+	Substitution into \eqref{eq-hc0-covariance} and continuous mapping yield $\widehat V_{\mathrm{HC0}}\pto V$.
+\end{proof}
+
+\begin{remark}[What Does ``Robust'' Mean Here?]
+	Robustness here concerns heteroskedasticity.
+	HC0 remains consistent whether or not \eqref{eq-constant-second-moment} holds.
+	Under that restriction, both $\widehat V_{\mathrm{HC0}}$ and $\widehat V_{\mathrm{hom}}$
+	converge to $\sigma^2Q_{xx}\inv$.
+	They need not be numerically equal in a finite sample.
+\end{remark}
+
+\begin{remark}[Robustness in Finite Samples?]
+	Can we talk about robustness in finite samples?
+	In a sense, \textsc{No}.
+	For the finite sample covariance comparison, suppose $\E(e\given X)=0$ and
+	$D=\var(e\given X)$ is diagonal, with entries $\sigma_i^2$.
+	If we treat these entries as unrelated, we have $n$ unknown variances and only one observation per entry.
+	HC0 does not require each $\widehat e_i^2$ to consistently estimate its corresponding $\sigma_i^2$.
+	Instead, it uses their weighted average $\widehat\Omega_{\mathrm{HC0}}$ in \eqref{eq-omega-hc0}.
+	This is a fixed-size $k\times k$ matrix,
+	and the proof shows that averaging across observations consistently estimates $\Omega$ under our assumptions.
+\end{remark}
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+\end{document}
