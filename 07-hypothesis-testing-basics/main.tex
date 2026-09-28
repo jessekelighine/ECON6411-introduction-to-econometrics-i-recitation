@@ -1,0 +1,365 @@
+%!TEX program = xelatex 
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+\usepackage{tikz}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Notes: Hypothesis Testing: Basics}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\maketitle
+
+\section{Hypotheses and Tests: Terminology}
+
+\subsection{What is a Hypothesis?}
+
+A statistical model specifies a collection of possible distributions for the data.
+A \emph{hypothesis} restricts this collection.
+It may specify a whole distribution, a parameter value, or a property such as a conditional mean.
+Write $\theta\in\Theta$ for the unknown features indexing the model and consider
+\begin{align}
+	H_0:\theta\in\Theta_0
+	\qquad\text{against}\qquad
+	H_1:\theta\in\Theta_1,
+\end{align}
+where $\Theta_0$ and $\Theta_1$ are disjoint.
+Usually $\Theta_1=\Theta\setminus\Theta_0$.
+The \emph{null hypothesis} $H_0$ is the restriction we test;
+the \emph{alternative hypothesis} $H_1$ describes the departures.
+
+\begin{definition}[Simple and Composite Hypotheses]
+	A hypothesis is \emph{simple} if it specifies a single distribution for the data.
+	It is \emph{composite} if it allows more than one distribution.
+\end{definition}
+
+\begin{example}
+	Suppose $Y_1,...,Y_n$ are independent $\normaldistribution(\mu,1)$ variables.
+	The hypothesis $H_0:\mu=0$ is simple,
+	whereas the hypothesis $H_0:\mu\le0$ is composite.
+\end{example}
+
+\subsection{Decision Rules and Test Statistics}
+
+\begin{definition}[Test and Rejection Region]
+	Let $D_n$ denote the full sample.
+	A test is a decision rule $\varphi_n(D_n)\in\{0,1\}$,
+	where one means reject $H_0$ and zero means do not reject $H_0$.
+	Its \emph{rejection region} is the set of samples
+	\begin{align}
+		\mathcal R_n=\{d:\varphi_n(d)=1\}.
+	\end{align}
+\end{definition}
+
+\begin{definition}[Test Statistic]
+	A test statistic is a function of the data $T_n(D_n)$ used to construct a test.
+\end{definition}
+
+\begin{remark}[Why use Test Statistics]
+	We often construct a test using a scalar test statistic.
+	For example, we might reject when $T_n>c$ or when $|T_n|>c$.
+	This reduces a potentially high-dimensional sample to a quantity whose distribution we can study.
+	A useful statistic should have a tractable distribution under the null
+	and tend to enter the rejection region under alternatives.
+\end{remark}
+
+\begin{remark}[Cannot Reject]
+	Not rejecting $H_0$ does not establish that it is true.
+	The test may simply be unable to distinguish the null from the relevant alternatives with the available data.
+	Nevertheless, in common parlance we often use ``accept'' to mean ``cannot reject.''
+\end{remark}
+
+\section{Errors, Size, and Power}
+
+\begin{table}[t]
+	\centering
+	\begin{tabular}{l|cc}
+		\toprule
+		& $H_0$ is true & $H_1$ is true \\
+		\midrule
+		Reject $H_0$ & Type I, False Positive &  \\
+		Accept $H_0$ &  & Type II, False Negative \\
+		\bottomrule
+	\end{tabular}
+	\caption{Type I and Type II Errors.}
+	\label{tab-errors}
+\end{table}
+
+As shown in \autoref{tab-errors}, a Type I error occurs when we reject a true null hypothesis,
+i.e., a false positive.
+A Type II error occurs when we fail to reject the null even though the alternative is true,
+i.e., a false negative.
+
+\begin{definition}[Power, Size, and Level]
+	The \emph{power function} is the rejection probability at each parameter value:
+	\begin{align}
+		\pi_n(\theta)=\Pr_\theta\{\varphi_n(D_n)=1\}.
+	\end{align}
+	Under the null, this is the Type I error probability.
+	Under an alternative, it is power, and $1-\pi_n(\theta)$ is the Type II error probability.
+	The \emph{size} of the test is
+	\begin{align}
+		\sup_{\theta\in\Theta_0}\pi_n(\theta).
+	\end{align}
+	A test has \emph{level} $\alpha$ if its size is at most $\alpha$.
+\end{definition}
+
+\begin{remark}
+	The supremum matters for a composite null: controlling the rejection probability at just one null value is not enough.
+	The significance level $\alpha$ is chosen before looking at the test result.
+	A common choice is $\alpha=0.05$.
+\end{remark}
+
+\begin{remark}[The Neyman-Pearson Approach]
+	There is a trade-off between the two errors.
+	Never rejecting eliminates Type I errors but has zero power;
+	always rejecting has power one but size one.
+	The Neyman-Pearson approach fixes a bound $\alpha$ on size
+	and seeks high power subject to that bound.
+	Different tests may have higher power against different alternatives,
+	so a test that is best against every alternative need not exist.
+\end{remark}
+
+\begin{definition}[Consistent Test]
+	A sequence of tests is \emph{consistent} against $\Theta_1$ if,
+	for every fixed $\theta\in\Theta_1$,
+	\begin{align}
+		\pi_n(\theta)\to1\qquad\text{as }n\to\infty.
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	Consistency concerns power, not size; a useful test needs both size control and good power.
+	The word \emph{fixed} is important: consistency does not promise power approaching one
+	against alternatives that move toward the null as the sample grows.
+\end{remark}
+
+\section{Critical Values and \texorpdfstring{$p$}{p}-Values}
+
+\subsection{Critical Values}
+
+\begin{definition}[Critical Value]
+	A \emph{critical value} is a cutoff for a scalar test statistic $T_n$
+	that is used to define the rejection region.
+\end{definition}
+
+\begin{remark}
+	Typically, it is selected using a null distribution.
+	If large values of $T_n$ lead to rejection and its continuous null \gls{cdf} is $G_0$,
+	the rejection region can be defined as $\{T_n>c_{1-\alpha}\}$
+	where $c_{1-\alpha}=G_0\inv(1-\alpha)$ is the $(1-\alpha)$-quantile of the null distribution.
+	Then the test has level $\alpha$:
+	\begin{align}
+		\Pr_{H_0}(T_n>c_{1-\alpha})=\alpha.
+	\end{align}
+\end{remark}
+
+\begin{example}
+	For a two-sided statistic with standard normal null distribution,
+	write $\Phi$ for the standard normal \gls{cdf} and $z_q=\Phi\inv(q)$.
+	Then reject when
+	\begin{align}\label{eq-normal-rejection}
+		|T_n|>z_{1-\alpha/2}.
+	\end{align}
+	The two tails each have probability $\alpha/2$.
+	At the 5\% level, $z_{0.975}\approx1.96$.
+	For an upper-sided alternative, reject when $T_n>z_{1-\alpha}$;
+	for a lower-sided alternative, reject when $T_n<z_\alpha$.
+	The direction of the test should be chosen before seeing the estimate.
+\end{example}
+
+\subsection{The Observed Tail Probability}
+
+\begin{definition}[$p$-value]
+	For a specified test statistic and ordering of what counts as more extreme,
+	the $p$-value is the null probability of a statistic \emph{at least as extreme as the observed value}.
+\end{definition}
+
+\begin{remark}
+	Instead of looking at whether $T_n$ falls into a pre-specified rejection region,
+	we can simply compare the $p$-value implied by the observed statistic to the significance level $\alpha$.
+	If $p<\alpha$, we reject; if $p\ge\alpha$, we do not reject.
+\end{remark}
+
+\begin{example}
+	For a two-sided standard normal test statistic $T_n$ with realized value $t_{\mathrm{obs}}$,
+	the $p$-value is defined as
+	\begin{align}\label{eq-normal-pvalue}
+		p
+		\coloneqq \Pr\big(|T_n|\ge|t_{\mathrm{obs}}|\big)
+		= 2\big(1-\Phi(|t_{\mathrm{obs}}|)\big).
+	\end{align}
+	For an upper-sided test, $p\coloneqq1-\Phi(t_{\mathrm{obs}})$;
+	for a lower-sided test, $p\coloneqq\Phi(t_{\mathrm{obs}})$.
+\end{example}
+
+\begin{remark}[Validity of $p$-values]
+	A valid $p$-value satisfies $\Pr_\theta(p\le a)\le a$ for every $\theta\in\Theta_0$ and $0<a<1$.
+	Under any parameter satisfying the null, the probability of obtaining a $p$-value at most $a$ is at most $a$.
+	Thus rejecting when $p\le\alpha$ controls the Type I error probability at level $\alpha$.
+\end{remark}
+
+\section{Normal-Based Testing}
+
+\subsection{Pivots and Asymptotic Pivots}
+
+\begin{definition}[Pivotal Quantity]
+	A pivotal quantity is a function of the data and parameters whose distribution does not depend on unknown parameters.
+\end{definition}
+
+\begin{example}
+	For independent normal observations with mean $\mu$ and known variance $\sigma^2$,
+	$\sqrt n(\bar Y_n-\mu)/\sigma\sim\normaldistribution(0,1)$ is pivotal
+	since standard normal distribution does not depend on $\mu$ and $\sigma$.
+\end{example}
+
+\begin{remark}
+	Exact pivots typically rely on strong distributional assumptions.
+	Our main approach instead uses an \emph{asymptotic pivot}.
+	That is, we construct a statistic whose \emph{limiting} distribution does not depend on unknown parameters.
+\end{remark}
+
+\begin{example}[Asymptotic Normal Testing]
+	Let an estimator $\widehat\theta\in\reals^k$ satisfy the following, with $V$ positive definite:
+	\begin{align}
+		\sqrt n(\widehat\theta-\theta)\dto\normaldistribution(0,V)
+		\quad\text{which implies}\quad
+		V^{-1/2}\sqrt n(\widehat\theta-\theta)\dto\normaldistribution(0,I_k).
+	\end{align}
+	Suppose that we have a consistent variance estimator $\widehat V\pto V$.
+	Under $H_0:\theta=\theta_0$,
+	construct the statistic $T_n$ as follows
+	\begin{align}\label{eq-studentized-statistic}
+		T_n
+		\coloneqq \widehat V^{-1/2} \sqrt n(\widehat\theta-\theta_0)
+		= \Big(\widehat V^{-1/2} V^{1/2}\Big) V^{-1/2} \sqrt n(\widehat\theta-\theta_0)
+		\dto\normaldistribution(0,I_k)
+	\end{align}
+	where the asymptotic distribution of $T_n$ follows from Slutsky's theorem.
+	Hence, $T_n$ is asymptotically pivotal.
+\end{example}
+
+\begin{remark}[Pointwise Asymptotic Validity]
+	Choosing a rejection region with probability $\alpha$ under the limiting normal distribution
+	gives rejection probability approaching $\alpha$ at each fixed null parameter where the stated assumptions hold,
+	provided the region's boundary has probability zero under that limiting distribution.
+	For a composite null, a uniform bound on size over all null parameters requires additional uniformity conditions.
+\end{remark}
+
+\subsection{Testing a Regression Coefficient}
+
+Consider $Y_i=X_i\T\beta+e_i$ with $X_i\in\reals^k$ and $\E(X_ie_i)=0$.
+Suppose the observations are \gls{iid} and the rank and moment conditions for
+\gls{ols} asymptotic normality and consistent variance estimation hold.
+Define $g_i\coloneqq X_i e_i$, $Q_{xx}\coloneqq\E X_iX_i\T$, and $\Omega\coloneqq\E g_i g_i\T$.
+Then we have
+\begin{align}
+	\sqrt n(\widehat\beta-\beta)\dto\normaldistribution(0,V)
+	\quad\text{where}\quad
+	V \coloneqq Q_{xx}\inv\Omega Q_{xx}\inv.
+\end{align}
+Suppose that we want to test a slope restriction $H_0:\beta_j=b_{j0}$ against $H_1:\beta_j\ne b_{j0}$.
+Previously, we have constructed a consistent estimator $\widehat V$ of $V$ using the sample analogs as follows
+\begin{align}
+	\widehat V
+	&\coloneqq
+	\left(\frac1n\sum_{i=1}^{n}X_iX_i\T\right)\inv
+	\left(\frac1n\sum_{i=1}^{n} \widehat g_i\widehat g_i\T\right)
+	\left(\frac1n\sum_{i=1}^{n}X_iX_i\T\right)\inv
+	\pto
+	V
+\end{align}
+where $\widehat g_i\coloneqq X_i\widehat e_i$ and $\widehat e_i=Y_i-X_i\T\widehat\beta$.
+Under $H_0:\beta_j=b_{j0}$, selecting the $j$-th coordinate gives
+\begin{align}
+	\sqrt n(\widehat\beta_j-b_{j0})\dto\normaldistribution(0,V_{jj}).
+\end{align}
+Provided $V_{jj}>0$, Slutsky's theorem gives
+\begin{align}
+	T_n=\widehat V_{jj}^{-1/2}\sqrt{n}(\widehat\beta_j-b_{j0})
+	=\frac{\widehat\beta_j-b_{j0}}{\operatorname{se}(\widehat\beta_j)}
+	\dto\normaldistribution(0,1)
+	\quad\text{where}\quad
+	\operatorname{se}(\widehat\beta_j)=\sqrt{\frac{\widehat V_{jj}}{n}}.
+\end{align}
+The approximate two-sided $p$-value is $p=2(1-\Phi(|T_n|))$ as given in \eqref{eq-normal-pvalue}.
+
+\begin{remark}[Size and Power]
+	Let's check the size and power of this test.
+	Under the null, $T_n\dto\normaldistribution(0,1)$,
+	so the rejection probability approaches $\alpha$ at each fixed null parameter.
+	Under a fixed alternative, say $b_{j,\text{alt}}$, we have
+	\begin{align}
+		T_n
+		&= \widehat V_{jj}^{-1/2}\sqrt{n}(\widehat\beta_j-b_{j0}) \\
+		&= \underbrace{\widehat V_{jj}^{-1/2}\sqrt{n}(\widehat\beta_j-b_{j,\text{alt}})}_{\dto\normaldistribution(0,1)}
+		+ \underbrace{\widehat V_{jj}^{-1/2}\sqrt{n}(b_{j,\text{alt}}-b_{j0})}_{\text{diverges in absolute value}}.
+	\end{align}
+	Therefore, the rejection probability approaches one at each fixed alternative.
+\end{remark}
+
+\begin{remark}[Why not Standardize First?]
+	One might be tempted to first standardize the full vector $\widehat\beta$ and then select the $j$-th coordinate:
+	\begin{align}
+		\left[\widehat V^{-1/2}\sqrt n(\widehat\beta-\beta_0)\right]_j \dto\normaldistribution(0,1).
+	\end{align}
+	However, notice that in this case, we are imposing the null restriction $\beta=\beta_0$ on the full vector, not just on the $j$-th coordinate.
+	Since multiplying by $\widehat V^{-1/2}$ first generally mixes coefficients,
+	the resulting statistic is not the same as the one obtained by first selecting the $j$-th coordinate and then standardizing.
+\end{remark}
+
+\begin{remark}[Two Cautions]\leavevmode
+	\begin{enumerate}
+		\item
+			\emph{The normal approximation must be useful at the actual sample size.}
+			A limiting result does not guarantee an accurate finite-sample approximation.
+			Heavy tails or a few influential observations can make the approximation poor.
+		\item
+			\emph{The variance formula and its estimate must be appropriate.}
+			Under heteroskedasticity, homoskedastic standard errors generally give the wrong normalization.
+			With dependent observations, even the \gls{iid} heteroskedasticity-robust formula may be inappropriate.
+			A poor variance estimate can also distort rejection probabilities in finite samples.
+	\end{enumerate}
+\end{remark}
+
+\begin{remark}[The Exact Normal Regression Test]
+	If instead we impose $e\given X\sim\normaldistribution(0,\sigma^2I_n)$,
+	with $X$ of full column rank and $n>k$, then under $H_0$,
+	\begin{align}
+		\left.\frac{\widehat\beta_j-b_{j0}}{\sqrt{s^2[(X\T X)\inv]_{jj}}}\given[\right] X\sim t_{n-k}
+		\quad\text{where}\quad
+		s^2=\frac{\widehat e\T\widehat e}{n-k}.
+	\end{align}
+	The standardized numerator is normal and independent of
+	$(n-k)s^2/\sigma^2\sim\chi_{n-k}^2$, conditional on $X$.
+	Thus $t_{n-k}$ quantiles give an exact conditional test.
+	And as $n\to\infty$, the $t$ distribution approaches the standard normal distribution.
+	Without these normal homoskedastic assumptions,
+	the so-called ``$t$-statistic'' need not have an exact $t$ distribution.
+\end{remark}
+
+\begin{remark}[Terminology: $t$-Test v.s.\ $z$-Test]
+	The distinction is the reference distribution: a $t$ distribution for a $t$-test and a standard normal distribution for a $z$-test.
+	A $z$-test can be exact, for example when testing a normal mean with known variance.
+	Here we use a heteroskedasticity-robust statistic with an asymptotic standard normal reference distribution.
+	Robustness comes from the variance estimator, not from the choice of reference distribution.
+	Such regression tests are nevertheless commonly called $t$-tests.
+\end{remark}
+
+\begin{remark}[A Note on the History of the $t$-Test]
+	Student's $t$-test was developed and published by William Sealy Gosset in 1908 in \emph{Biometrika} while working at the Guinness brewery.
+	He published under the pseudonym ``Student'' to avoid conflicts with his employer's policy on publishing.
+	The term \emph{student's $t$ distribution} was popularized by Sir Ronald A.\ Fisher in the early 20th century.
+\end{remark}
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+\end{document}

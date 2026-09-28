@@ -1,0 +1,692 @@
+%!TEX program = xelatex
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Notes: Maximum Likelihood}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\maketitle
+
+\section{Likelihood and Maximum Likelihood}
+
+Let $\{Y_i\}_{i=1}^n$ be \gls{iid},
+and let $f(y\given\theta)$ be a proposed density,
+where $\theta\in\Theta\subseteq\reals^k$.
+For discrete outcomes, replace the density by a probability mass function.
+The model is \emph{correctly specified} if, for some $\theta_0\in\Theta$,
+$f(y\given\theta_0)$ is the true density of $Y_i$.
+The true parameter $\theta_0$ is fixed but unknown.
+
+\begin{definition}[Likelihood Function]
+	The likelihood and average log-likelihood are
+	\begin{align}
+		L_n(\theta)
+		&= \prod_{i=1}^nf(Y_i\given\theta) \\
+		\shortintertext{and}
+		\ell_n(\theta)
+		&= \frac1n \log L_n(\theta)
+		=\frac1n \sum_{i=1}^n\log f(Y_i\given\theta).
+	\end{align}
+\end{definition}
+
+\begin{remark}[Density v.s.\ Likelihood Functions]
+	In a density, the parameter is fixed and the outcome varies.
+	In a likelihood, the observed data are fixed and we compare different parameter values.
+	The likelihood is not a probability density for $\theta$,
+	and its integral over $\Theta$ need not equal one.
+\end{remark}
+
+\begin{definition}[Likelihood and Maximum Likelihood]
+	\Gls{mle} chooses a parameter that maximizes the likelihood:
+	\begin{align}\label{eq-mle}
+		\widehat\theta\in\arg\max_{\theta\in\Theta}L_n(\theta)
+		=\arg\max_{\theta\in\Theta}\ell_n(\theta).
+	\end{align}
+\end{definition}
+
+\section{Properties of Maximum Likelihood}
+
+\subsection{Invariance}
+
+\begin{proposition}[Invariance of \gls{mle}]
+	Let $g$ be a one-to-one function of $\theta$.
+	Define the induced likelihood for $\eta=g(\theta)$ by $L_n^\eta(\eta)\coloneqq L_n(g\inv(\eta))$.
+	If $\widehat\theta$ maximizes $L_n(\theta)$,
+	then $\widehat\eta\coloneqq g(\widehat\theta)$ maximizes $L_n^\eta(\eta)$.
+\end{proposition}
+
+\begin{remark}[Implication of Invariance]
+	If $\widehat \sigma^2$ is the maximum likelihood estimate of a variance $\sigma^2$,
+	then $\sqrt{\widehat \sigma^2}$ is the maximum likelihood estimate of the standard deviation $\sigma$.
+	In general, invariance does not preserve unbiasedness.
+	On the other hand, consistency is preserved if $g$ is continuous.
+\end{remark}
+
+\begin{remark}[No Jacobian for a Parameter Transformation]
+	Reparameterizing the likelihood only relabels its argument.
+	There is no Jacobian because we are not transforming a random variable with a density over $\Theta$.
+	Transforming the \emph{data} is a different operation;
+	that change-of-density formula is given in \autoref{app-density}.
+\end{remark}
+
+\begin{definition}[Population Objective]\label{def-population-objective}
+	The population objective is the expected log-likelihood at each parameter value:
+	\begin{align}
+		Q(\theta)
+		&\coloneqq \E[\log f(Y_i\given\theta)\given\theta_0]
+		= \int_{\mathcal{Y}} \log f(y\given\theta)f(y\given\theta_0)\diff y.
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	For conciseness, we write the population expectation as
+	\begin{align}
+		\E_0[\log f(Y_i\given\theta)]
+		\coloneqq \E[\log f(Y_i\given\theta)\given\theta_0].
+	\end{align}
+	That is, we use $\E_0$ to denote expectation under the \emph{true} density of $Y_i$.
+\end{remark}
+
+\subsection{Score and Information}
+
+\begin{definition}[Score and Hessian]
+	Let $\ell_i(\theta)=\log f(Y_i\given\theta)$.
+	The individual score is a column vector, and the individual Hessian is a matrix:
+	\begin{gather}
+		s_i(\theta)
+		\coloneqq \dot\ell_i(\theta)
+		\coloneqq \frac{\partial}{\partial\theta} \ell_i(\theta)
+		= f(Y_i\given\theta)\inv\frac{\partial}{\partial\theta} f(Y_i\given\theta)
+		\in\reals^k
+		\shortintertext{and}
+		H_i(\theta)
+		\coloneqq \ddot\ell_i(\theta)
+		\coloneqq \frac{\partial^2}{\partial\theta\partial\theta\T} \ell_i(\theta)
+		\in\reals^{k\times k}.
+	\end{gather}
+\end{definition}
+
+\begin{remark}[On Notation]
+	We use dots to denote derivatives w.r.t.\ parameter $\theta$.
+\end{remark}
+
+\begin{remark}[Solving for \gls{mle} using the Score]
+	Typically, solving for the maximization problem \eqref{eq-mle}
+	means solving the first-order condition, i.e., the score equation
+	\begin{align}\label{eq-score-equation}
+		\frac{\partial\ell_n(\widehat\theta)}{\partial\theta}
+		=\frac1n \sum_{i=1}^ns_i(\widehat\theta)=0
+	\end{align}
+	provided that $\widehat\theta$ is in the interior of $\Theta$ and the objective is differentiable there.
+\end{remark}
+
+\begin{definition}[Information Matrix]\label{def-information}
+	The \emph{information matrix} is defined as
+	\begin{align}
+		I(\theta_0)\coloneqq\E_0[s_i(\theta_0)s_i(\theta_0)\T].
+	\end{align}
+	It is also known as the \emph{Fisher information}.
+\end{definition}
+
+\begin{assumption}[Regularity Conditions for Likelihood Calculations]\label{ass-regular}
+	Here are some standard regularity conditions for the calculations below:
+	\begin{enumerate}
+		\item The true parameter $\theta_0$ is in the interior of $\Theta$.
+		\item The support of the density does not depend on $\theta$.
+		\item The log density is twice continuously differentiable near $\theta_0$.
+		\item The score has finite second moments.
+		\item The information matrix is positive definite.
+	\end{enumerate}
+	We also require that differentiation and integration can be interchanged in the calculations below.
+\end{assumption}
+
+\begin{proposition}
+	$\E_0 s_i(\theta_0)=0$.
+\end{proposition}
+\begin{proof}
+	Consider the following:
+	\begin{align*}
+		\E_0 s_i(\theta_0)
+		&= \int_{\mathcal{Y}} \left.\frac{\partial}{\partial\theta}\log f(y\given\theta)\right|_{\theta=\theta_0} f(y\given\theta_0)\diff y \\
+		&= \int_{\mathcal{Y}} \left.\frac{\partial}{\partial\theta} f(y\given\theta)\right|_{\theta=\theta_0} \diff y
+		= \left.\frac{\partial}{\partial\theta}\int_{\mathcal{Y}} f(y\given\theta)\diff y\right|_{\theta=\theta_0}
+		= 0.
+		\qedhere
+	\end{align*}
+	The penultimate equality
+	first exchanges differentiation and integration,
+	then uses the fact that the integral of a density is one, so its derivative is zero.
+\end{proof}
+
+\begin{corollary}
+	$\var_0(s_i(\theta_0))=I(\theta_0)$.
+\end{corollary}
+
+\begin{question}[Interpreting Fisher Information]\label{question-1}
+	Knowing that information matrix is the variance of the score,
+	is it good or bad to have a \emph{large} information matrix?
+\end{question}
+
+\begin{theorem}[Information Equality]\label{thm-information-equality}
+	$I(\theta_0)=-\E_0 H_i(\theta_0)$.
+\end{theorem}
+\begin{proof}
+	Consider the following:
+	\begin{align}
+		\E_0 H_i(\theta_0)
+		&= \int_{\mathcal{Y}} \left.\frac{\partial^2}{\partial\theta\partial\theta\T}\log f(y\given\theta)\right|_{\theta=\theta_0} f(y\given\theta_0)\diff y \\
+		&= \int_{\mathcal{Y}} \left(\frac{\ddot f(y\given\theta_0)}{f(y\given\theta_0)} - \frac{\dot f(y\given\theta_0)\dot f(y\given\theta_0)\T}{f(y\given\theta_0)^2}\right) f(y\given\theta_0)\diff y \\
+		&= \underbrace{\left.\frac{\partial^2}{\partial\theta\partial\theta\T}\int_{\mathcal{Y}} f(y\given\theta)\diff y\right|_{\theta=\theta_0}}_{=0}
+		- \int_{\mathcal{Y}} \frac{\dot f(y\given\theta_0)\dot f(y\given\theta_0)\T}{f(y\given\theta_0)}\diff y
+		= - I(\theta_0).
+	\end{align}
+	The penultimate equality
+	first exchanges differentiation and integration,
+	then uses the fact that the integral of a density is one, so its derivative is zero.
+\end{proof}
+
+\begin{question}[Interpreting Fisher Information]\label{question-2}
+	Knowing that information matrix is the expected negative curvature of the log-likelihood,
+	is it good or bad to have a \emph{large} information matrix?
+	How does your answer compare to \autoref{question-1}?
+\end{question}
+
+\subsection{Consistency}
+
+The key convergence condition for consistency is that the average log-likelihood
+converges to its expectation \emph{uniformly} over $\Theta$:
+\begin{align}\label{eq-uniform-convergence}
+	\sup_{\theta\in\Theta}\left|\ell_n(\theta)-Q(\theta)\right|\pto 0.
+\end{align}
+\begin{proposition}[Consistency of \gls{mle}]\label{prop-mle-consistency}
+	Suppose also that $\Theta$ is compact and $Q$ is continuous with unique maximizer $\theta_0$.
+	Then, \eqref{eq-uniform-convergence} guarantees consistency.
+\end{proposition}
+\begin{proof}
+	Note that $\ell_n(\widehat\theta)\ge\ell_n(\theta_0)$ by definition of $\widehat\theta$.
+	Then,
+	\begin{align*}
+		0\le Q(\theta_0)-Q(\widehat\theta)
+		\le |Q(\theta_0)-\ell_n(\theta_0)|
+		+|\ell_n(\widehat\theta)-Q(\widehat\theta)| 
+		\le 2\sup_{\theta\in\Theta}|\ell_n(\theta)-Q(\theta)|\pto 0.
+	\end{align*}
+	For any $\varepsilon>0$, compactness, continuity, and uniqueness imply a positive gap
+	$\delta_\varepsilon=Q(\theta_0)-\sup_{\theta\in\Theta:\|\theta-\theta_0\|\ge\varepsilon}Q(\theta)>0$
+	whenever the set is nonempty.
+	Thus
+	\begin{align*}
+		\Pr(\|\widehat\theta-\theta_0\|\ge\varepsilon)
+		&\le \Pr\big(Q(\theta_0)-Q(\widehat\theta)\ge\delta_\varepsilon\big)\to 0.
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{remark}
+	Uniform convergence is usually established using a uniform law of large numbers.
+	Common sufficient conditions are a compact parameter space, continuity of $\log f(y\given\theta)$ in $\theta$,
+	and a bound $|\log f(Y_i\given\theta)|\le M(Y_i)$ for all $\theta\in\Theta$, with $\E_0M(Y_i)<\infty$.
+	These conditions control how the sample objective varies across parameter values,
+	so convergence holds uniformly rather than only at each fixed $\theta$.
+\end{remark}
+
+\subsection{Asymptotic Normality}\label{sec-mle-asymptotic-normality}
+
+Suppose that the \gls{mle} $\widehat\theta$ is consistent.
+Also assume that the sample average Hessian converges uniformly near $\theta_0$ to its continuous expectation.
+Then, by the integral form of the mean value expansion, we have
+\begin{gather}
+	\dot\ell_n(\widehat\theta) - \dot\ell_n(\theta_0) = \widetilde H_n(\widehat\theta-\theta_0),
+	\shortintertext{where}
+	\widetilde H_n
+	=\int_0^1\ddot\ell_n\big(\theta_0+t(\widehat\theta-\theta_0)\big)\diff t
+	\pto\E_0 H_i(\theta_0).
+\end{gather}
+Note that $\dot\ell_n(\widehat\theta)=0$ for an interior maximizer.
+Consistency and interiority of $\theta_0$ ensure that $\widehat\theta$ is interior with probability approaching one.
+Then, by the \gls{clt} and the Hessian limit above, we have
+\begin{align}
+	\sqrt{n}(\widehat\theta-\theta_0)
+	&= - \widetilde H_n\inv \frac{1}{\sqrt{n}}\sum_{i=1}^n s_i(\theta_0) \\
+	&\dto
+	- \E_0[H_i(\theta_0)]^{-1} \normaldistribution(0, I(\theta_0))
+	= \normaldistribution(0, V). \label{eq-mle-normality}
+	\shortintertext{where}
+	V &=  \E_0[H_i(\theta_0)]^{-1} I(\theta_0) \E_0[H_i(\theta_0)]^{-1} = I(\theta_0)\inv\label{eq-mle-asymptotic-variance}
+\end{align}
+where the simplification of asymptotic variance is by \nameref{thm-information-equality}.
+
+\begin{remark}
+	Answers to \autoref{question-1} and \autoref{question-2} are consistent.
+	Note that in the asymptotic variance formula, the variance of $s_i(\theta_0)$, i.e., $I(\theta_0)$, is in the numerator,
+	whereas the curvature $\E_0[H_i(\theta_0)]$ is in the denominator.
+	Efficiency of \gls{mle} is a trade-off between the two quantities.
+	In the end, we want a \emph{large} Fisher information matrix, hence the name ``information.''
+	The intuition of \eqref{eq-mle-normality} will carry over to the \gls{qmle} later.
+\end{remark}
+
+% \begin{remark}[Asymptotic versus Finite Sample Variance]
+% 	Equation \eqref{eq-mle-normality} suggests the large sample covariance approximation
+% 	$I(\theta_0)\inv/n$ for $\widehat\theta$.
+% 	It is not generally an exact finite sample covariance formula,
+% 	and maximum likelihood estimates need not be unbiased.
+% \end{remark}
+
+\subsection{The Cram\'er-Rao Bound}
+
+\begin{theorem}[Cram\'er-Rao Bound]\label{thm-cramer-rao}
+	In a correctly specified regular model,
+	let $T$ have finite variance and satisfy $\E_\theta T=\theta$
+	for every $\theta$ in a neighborhood of $\theta_0$.
+	Assume differentiation can also be passed through the expectation of $T$.
+	Then
+	\begin{align}
+		\var_0(T)\succeq[nI(\theta_0)]\inv.
+	\end{align}
+\end{theorem}
+\begin{proof}
+	Since $\E_\theta T=\theta$ for all $\theta$ near $\theta_0$,
+	differentiating with respect to $\theta$ gives
+	\begin{gather}\label{eq-cramer-rao-derivative}
+		\int_{\mathcal{Y}^n} T
+		\underbrace{\left[\frac{\dot f(y_1,...,y_n\given\theta)\T}{f(y_1,...,y_n\given\theta)}\right]}_{S_n\T}
+		f(y_1,...,y_n\given\theta) \diff y_1...\diff y_n = I_k,
+	\end{gather}
+	evaluating at $\theta_0$ gives $\E_0 T S_n\T = I_k$,
+	where $S_n=\sum_i s_i(\theta_0)$ is the sum of scores.
+	Let $\var_0(S_n)=J_n=nI(\theta_0)$.
+	Hence, we have the following:
+	\begin{align*}
+		0
+		&\preceq \var_0(T-J_n\inv S_n)
+		= \var_0(T)-J_n\inv.
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{remark}
+	The Cram\'er-Rao bound gives a lower limit on the variance of an unbiased estimator
+	in each direction. An unbiased estimator that attains the bound has the smallest possible
+	variance within the class covered by the theorem, although the bound need not be attainable.
+	Unlike Gauss-Markov, the comparison is not restricted to estimators linear in the data.
+	Instead, it applies to unbiased estimators satisfying the relevant regularity conditions
+	in a correctly specified model.
+	Roughly, these conditions require the density to vary smoothly with the parameter
+	and allow differentiation to pass through the expectations used in the proof.
+\end{remark}
+
+\section{The Normal Linear Model}
+
+\subsection{Likelihood and Maximization}
+
+Consider
+\begin{align}
+	Y_i=X_i\T\beta_0+e_i,
+	\qquad e_i\given X_i\sim\normaldistribution(0,\sigma_0^2),
+	\qquad \sigma_0^2>0.
+\end{align}
+The observations are \gls{iid}, $X_i\in\reals^k$,
+and the sample matrix $X$ has rows $X_i\T$ and full column rank.
+Derivatives below are with respect to the variance $\sigma^2$,
+not the standard deviation $\sigma$.
+Here $\beta\in\reals^k$, so the full parameter $\theta=(\beta\T,\sigma^2)\T$ has dimension $k+1$.
+For a candidate $\theta$,
+\begin{align}
+	f(y_i\given x_i,\beta,\sigma^2)
+	&=(2\pi \sigma^2)^{-1/2}\exp\left\{-\frac{(y_i-x_i\T\beta)^2}{2\sigma^2}\right\},\\
+	\ell_n(\beta,\sigma^2)
+	&=-\frac12\log(2\pi)-\frac12\log \sigma^2
+	-\frac1{2n\sigma^2}(Y-X\beta)\T(Y-X\beta).
+\end{align}
+The two score equations are
+\begin{align}
+	\frac{\partial\ell_n}{\partial\beta}
+	&=\frac{X\T(Y-X\beta)}{n\sigma^2}=0,\\
+	\frac{\partial\ell_n}{\partial \sigma^2}
+	&=-\frac1{2\sigma^2}+\frac{(Y-X\beta)\T(Y-X\beta)}{2n\sigma^4}=0.
+\end{align}
+For any fixed $\sigma^2>0$, maximizing the log-likelihood over $\beta$ is equivalent to minimizing
+the sum of squared residuals. Hence
+\begin{align}\label{eq-normal-mle}
+	\widehat\beta=(X\T X)\inv X\T Y,
+	\qquad
+	\widehat\sigma^2=\frac{\widehat e\T\widehat e}{n},
+	\qquad \widehat e=Y-X\widehat\beta.
+\end{align}
+After substituting $\widehat\beta$, the derivative with respect to $\sigma^2$ has the sign of
+$\widehat e\T\widehat e-n\sigma^2$.
+Thus $\widehat\sigma^2$ is the global maximizer over $\sigma^2>0$ whenever $\widehat e\T\widehat e>0$.
+Assume $n>k$ and exclude a perfect fit; under the stated normal model a perfect fit has probability zero.
+
+\begin{remark}[Why Condition on the Regressors?]
+	We model the distribution of $Y_i$ given $X_i$, rather than their joint distribution.
+	This lets us estimate $(\beta,\sigma^2)$ without specifying how the regressors are distributed.
+	When the distribution of $X_i$ does not depend on $(\beta,\sigma^2)$,
+	its contribution to the joint likelihood is constant in these parameters,
+	so maximizing the conditional likelihood gives the same estimates.
+\end{remark}
+
+\begin{remark}[Why Divide by $n$, Not $n-k$?]
+	The divisor $n$ comes from maximizing the likelihood.
+	Since $\widehat e=M e$ with $M=I_n-X(X\T X)\inv X\T$,
+	\begin{align*}
+		\E(\widehat e\T\widehat e\given X)
+		=\sigma_0^2\operatorname{tr}(M)=(n-k)\sigma_0^2.
+	\end{align*}
+	Consequently, $\widehat\sigma^2$ is biased downward:
+	$\E(\widehat\sigma^2\given X)=(n-k)\sigma_0^2/n$.
+	The estimator $\widehat e\T\widehat e/(n-k)$ is unbiased but is not the maximum likelihood estimate.
+\end{remark}
+
+\subsection{Hessian and Information}
+
+Writing $e_i(\beta)=Y_i-X_i\T\beta$, the individual score and Hessian are
+\begin{align}
+	s_i(\beta,\sigma^2)
+	&=\begin{pmatrix}
+		X_i e_i(\beta)/\sigma^2\\
+		-1/(2\sigma^2)+e_i(\beta)^2/(2\sigma^4)
+	\end{pmatrix},\\
+	H_i(\beta,\sigma^2)
+	&=\begin{pmatrix}
+		-X_iX_i\T/\sigma^2 & -X_i e_i(\beta)/\sigma^4\\
+		-e_i(\beta)X_i\T/\sigma^4 & 1/(2\sigma^4)-e_i(\beta)^2/\sigma^6
+	\end{pmatrix}.
+\end{align}
+Let $Q_{xx}=\E(X_iX_i\T)$ be finite and positive definite.
+At the truth, $\E(e_i\given X_i)=0$ and $\E(e_i^2\given X_i)=\sigma_0^2$, so
+\begin{align}\label{eq-normal-information}
+	I(\theta_0)=-\E_0H_i(\theta_0)
+	=\begin{pmatrix}
+		Q_{xx}/\sigma_0^2&0\\
+		0&1/(2\sigma_0^4)
+	\end{pmatrix}.
+\end{align}
+We can also calculate the score covariance directly.
+Normality gives $\E(e_i^3\given X_i)=0$ and $\E(e_i^4\given X_i)=3\sigma_0^4$.
+Therefore
+\begin{align*}
+	\E_0(s_{\beta i}s_{\beta i}\T)&=Q_{xx}/\sigma_0^2,\\
+	\E_0(s_{\beta i}s_{\sigma^2,i})&=0,\\
+	\E_0(s_{\sigma^2,i}^2)&=\frac{\E_0[(e_i^2-\sigma_0^2)^2]}{4\sigma_0^8}
+	=\frac{3\sigma_0^4-\sigma_0^4}{4\sigma_0^8}=\frac1{2\sigma_0^4}.
+\end{align*}
+This verifies the information equality for both parameters.
+Inverting \eqref{eq-normal-information} gives
+\begin{align}
+	\sqrt n\begin{pmatrix}\widehat\beta-\beta_0\\\widehat\sigma^2-\sigma_0^2\end{pmatrix}
+	\dto\normaldistribution\left(0,
+	\begin{pmatrix}\sigma_0^2Q_{xx}\inv&0\\0&2\sigma_0^4\end{pmatrix}\right).
+\end{align}
+
+\begin{remark}[Conditioning and the Asymptotic Distribution]
+	Although we construct the likelihood conditional on the regressors,
+	the asymptotic calculation here treats $(Y_i,X_i)$ as \gls{iid} random observations.
+	Thus, the expectations defining the information matrix average over both $Y_i$ and $X_i$.
+	In particular, the conditional information for $\beta$ is $X_iX_i\T/\sigma_0^2$,
+	while its expectation is $Q_{xx}/\sigma_0^2$, where $Q_{xx}=\E(X_iX_i\T)$.
+\end{remark}
+
+\begin{remark}
+	Conditional on $X$, the sample information for $\beta$ is $X\T X/\sigma_0^2$.
+	Here the inverse information is also the \emph{exact} conditional covariance:
+	\begin{align}
+		\widehat\beta\given X
+		\sim\normaldistribution\big(\beta_0,\sigma_0^2(X\T X)\inv\big).
+	\end{align}
+	Thus $\widehat\beta$ attains the conditional Cram\'er-Rao bound in this model,
+	even when $\sigma_0^2$ is unknown, because the information matrix is block diagonal.
+\end{remark}
+
+\section{Three Routes to \glsentryshort{ols}}
+
+The same estimator can be motivated by three different problems:
+\begin{enumerate}
+	\item \emph{Loss minimization.}
+	Choose the linear predictor that minimizes sample squared error:
+	$\min_b\sum_i(Y_i-X_i\T b)^2$.
+	This is an algebraic optimization problem, requiring no distributional assumptions.
+	\item \emph{Method of moments.}
+	Start with the population restriction $\E[X_i(Y_i-X_i\T\beta_0)]=0$
+	and impose its sample analogue $n\inv\sum_iX_i(Y_i-X_i\T\widehat\beta)=0$.
+	This only specifies particular moments, not a full distribution.
+	\item \emph{Maximum likelihood.}
+	Assume a normal conditional distribution with linear mean and constant variance,
+	and maximize its likelihood as in \eqref{eq-normal-mle}.
+\end{enumerate}
+Full column rank makes each sample problem give $\widehat\beta=(X\T X)\inv X\T Y$.
+The formula is identical, but the assumptions used to interpret it are not.
+In particular, normality is not needed for the usual consistency of \gls{ols}.
+
+\section{Quasi-Maximum Likelihood}
+
+\subsection{What If the Density Is Wrong?}
+
+Let $g(y\given x)$ denote the \emph{true conditional density} of $Y_i$ given $X_i=x$,
+and let $f(y\given x,\theta)$ be a \emph{working conditional density} chosen for estimation.
+Under correct specification, $g(y\given x)=f(y\given x,\theta_0)$ for some $\theta_0$.
+% Under misspecification, no such parameter need exist.
+We maximize the working likelihood $f$, but evaluate the estimator's properties under the true distribution $g$.
+Write $\E_g$ for expectation under the true distribution of $(Y_i,X_i)$.
+The estimator is
+\begin{align}
+	\widehat\theta\in\arg\max_{\theta\in\Theta}
+	\frac1n\sum_{i=1}^n\log f(Y_i\given X_i,\theta).
+\end{align}
+This is \emph{\gls{qmle}}.
+Its population target is the \emph{pseudo-true parameter}
+\begin{align}
+	\theta_*
+	\in \arg\max_{\theta\in\Theta} \E_g[\log f(Y_i\given X_i,\theta)].
+\end{align}
+Under identification and suitable uniform convergence, $\widehat\theta\pto\theta_*$.
+There is no general guarantee that $\theta_*$ equals a parameter of interest.
+That must be checked for the particular model and the particular misspecification.
+
+\subsection{A Normal Working Likelihood under Heteroskedasticity}
+
+Suppose the true model satisfies
+\begin{align}\label{eq-heteroskedastic-model}
+	Y_i=X_i\T\beta_0+e_i,
+	\qquad \E_g(e_i\given X_i)=0,
+	\qquad \var_g(e_i\given X_i)=\sigma^2(X_i),
+\end{align}
+but our working density $f$ is the same homoskedastic normal density as before.
+Here $g(y\given x)$ is the true conditional density with mean $x\T\beta_0$
+and variance $\sigma^2(x)$; it need not be normal.
+Assume finite second moments of $Y_i$ and $X_i$ and positive definite $Q_{xx}$.
+The sample solution remains \eqref{eq-normal-mle}.
+To find its population target, write
+\begin{align}
+	\E_g[(Y_i-X_i\T\beta)^2]
+	=\E_g(e_i^2)+(\beta-\beta_0)\T Q_{xx}(\beta-\beta_0).
+\end{align}
+The cross term vanishes because $\E_g(X_ie_i)=0$.
+Hence expected squared error is uniquely minimized at $\beta_0$, and the pseudo-true parameters are
+\begin{align}
+	\beta_*=\beta_0,
+	\qquad \sigma_*^2=\E_g(e_i^2)=\E_g[\sigma^2(X_i)]>0.
+\end{align}
+Thus \gls{ols} still consistently estimates $\beta_0$,
+while $\widehat\sigma^2$ consistently estimates the \emph{average} error variance,
+not the observation-specific conditional variance.
+Neither normality nor homoskedasticity is needed for these consistency conclusions.
+
+\subsection{Why the Information Equality Can Fail}
+
+At an interior pseudo-true parameter, define
+\begin{align}
+	A=-\E_gH_i(\theta_*),
+	\qquad B=\E_g[s_i(\theta_*)s_i(\theta_*)\T].
+\end{align}
+Under the differentiability and moment conditions needed for the score expansion,
+$\E_gs_i(\theta_*)=0$.
+The score and Hessian are derivatives of $\log f(Y_i\given X_i,\theta)$,
+but these expectations are taken under $g$.
+Recall the proof of \nameref{thm-information-equality}:
+the equality obtained by integrating against $f$ need not hold under $g$,
+so there is no general reason for $A=B$.
+With nonsingular $A$ and the usual consistency, Hessian convergence, and score \gls{clt} conditions,
+\begin{align}\label{eq-sandwich}
+	\sqrt n(\widehat\theta-\theta_*)
+	\dto\normaldistribution(0,A\inv BA\inv).
+\end{align}
+This is the \emph{sandwich} covariance:
+curvature on the outside and score variability in the middle.
+
+\begin{remark}
+	Recall the score expansion in \autoref{sec-mle-asymptotic-normality}:
+	the inverse Hessian appears on both sides of the score covariance.
+	The same argument applies here, but without the information equality we cannot simplify $A\inv BA\inv$ to $A\inv$.
+	Under correct specification, $A=B=I(\theta_0)$ and it reduces to \eqref{eq-mle-asymptotic-variance}.
+\end{remark}
+
+For the normal working likelihood in \eqref{eq-heteroskedastic-model},
+let $g_i=X_ie_i$ and suppose $\Omega=\E_g[g_i g_i\T]$ is finite.
+The matrices are
+\begin{align}
+	A &= 
+	\begin{bmatrix*}
+		A_{\beta\beta} & 0\\
+		0 & A_{\sigma^2\sigma^2}
+	\end{bmatrix*}
+	=
+	\begin{bmatrix*}
+		Q_{xx}/\sigma_*^2 & 0\\
+		0 & 1/(2\sigma_*^4)
+	\end{bmatrix*} \\
+	\shortintertext{and}
+	B &=
+	\begin{bmatrix*}
+		B_{\beta\beta} & B_{\beta,\sigma^2}\\
+		B_{\beta,\sigma^2}\T & B_{\sigma^2\sigma^2}
+	\end{bmatrix*}
+	=
+	\begin{bmatrix*}
+		\Omega/\sigma_*^4 & \E_g[X_ie_i^3]/(2\sigma_*^6)\\
+		\E_g[e_i^3X_i\T]/(2\sigma_*^6) & \var_g(e_i^2)/(4\sigma_*^8)
+	\end{bmatrix*}.
+\end{align}
+Consequently, the slope and intercept coefficients have limiting covariance
+\begin{align}
+	A_{\beta\beta}\inv B_{\beta\beta}A_{\beta\beta}\inv
+	=Q_{xx}\inv\Omega Q_{xx}\inv.
+\end{align}
+The inverse-Hessian formula alone would instead give $\sigma_*^2Q_{xx}\inv$,
+which is generally incorrect under heteroskedasticity.
+The corresponding heteroskedasticity-robust covariance estimator for $\widehat\beta$ is
+\begin{align}
+	\widehat{\var}(\widehat\beta)
+	=(X\T X)\inv\left(\sum_{i=1}^nX_iX_i\T\widehat e_i^2\right)(X\T X)\inv.
+\end{align}
+Its consistency requires the usual additional moment conditions for this sample sandwich.
+The joint asymptotic distribution including $\widehat\sigma^2$ also requires moments of $e_i^2$,
+in particular a finite fourth moment of $e_i$ for its score variance.
+
+\begin{remark}[Why Use a Working Likelihood?]
+	A convenient likelihood can provide a tractable objective and useful estimating equations
+	without requiring its entire distributional specification to be correct.
+	% The normal example works because the coefficient score is proportional to $X_ie_i$,
+	% whose expectation is zero under the conditional mean restriction.
+	Other working likelihoods can similarly target a correctly specified conditional mean.
+	Consistency must still be justified, and standard errors must allow for the misspecification.
+	There is no general efficiency guarantee from choosing a convenient working likelihood.
+\end{remark}
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+\clearpage
+\appendix
+
+\section{Change of Density}\label{app-density}
+
+\begin{theorem}[Change of Density]
+	Let $h$ be a one-to-one differentiable function with differentiable inverse, and let
+	$Z\coloneqq h(Y)$.
+	Let $f_{Y\given X}(y\given x,\theta)$ and $f_{Z\given X}(z\given x,\theta)$ denote the conditional densities
+	of $Y$ given $X$ and $Z$ given $X$, respectively.
+	Then the two densities are related by the change-of-density formula
+	\begin{align}\label{eq-change-of-density}
+		f_{Z\given X}(z\given x,\theta)
+		=f_{Y\given X}(h\inv(z)\given x,\theta)
+		\left|\frac{\diff}{\diff z}h\inv(z)\right|.
+	\end{align}
+\end{theorem}
+
+\begin{remark}[Change-of-Density via \glsentryshort{cdf}]
+	Let $g$ be an arbitrary function of $Y$.
+	Integrals of $g$ can be viewed as Riemann-Stieltjes integrals with respect to the \glspl{cdf}.
+	Since $Z=h(Y)$, we have
+	\begin{align}
+		\int_{\mathcal{Y}} g(y)\diff F_{Y\given X}(y\given x)
+		&=
+		\int_{\mathcal{Z}} g(h\inv(z))\diff F_{Z\given X}(z\given x).
+	\end{align}
+	Now suppose that $F_{Y\given X}$ is differentiable with derivative $f_{Y\given X}$,
+	and write the integral with respect to the density instead of the \gls{cdf}.
+	The \gls{cdf} of $Z$ given $X$ is
+	\begin{align}
+		F_{Z\given X}(z\given x)
+		= \Pr(Z\le z\given X=x)
+		= \Pr(h(Y)\le z\given X=x).
+	\end{align}
+	We have two cases:
+	\begin{align}
+		F_{Z\given X}(z\given x)
+		&=
+		\begin{cases}
+			F_{Y\given X}(h\inv(z)\given x)
+			& \text{if $h$ is increasing,} \\
+			1-F_{Y\given X}(h\inv(z)\given x)
+			& \text{if $h$ is decreasing,}
+		\end{cases} \\
+		\implies
+		\diff F_{Z\given X}(z\given x)
+		&=
+		\begin{cases}
+			f_{Y\given X}(h\inv(z)\given x)
+			\displaystyle\frac{\diff}{\diff z}h\inv(z)\diff z
+			& \text{if $h$ is increasing,} \\
+			-f_{Y\given X}(h\inv(z)\given x)
+			\displaystyle\frac{\diff}{\diff z}h\inv(z)\diff z
+			& \text{if $h$ is decreasing.}
+		\end{cases}
+	\end{align}
+	Since the derivative of $h\inv$ is positive in the first case and negative
+	in the second, both cases can be written as
+	\begin{align}
+		\diff F_{Z\given X}(z\given x)
+		=
+		f_{Y\given X}(h\inv(z)\given x)
+		\left|
+			\frac{\diff}{\diff z}h\inv(z)
+		\right|
+		\diff z,
+	\end{align}
+	which yields \eqref{eq-change-of-density}.
+\end{remark}
+
+\begin{remark}[Vector-Valued Transformations]
+	For a vector-valued transformation, replace the absolute derivative by the absolute determinant
+	of the inverse transformation's Jacobian matrix.
+	Let $Y\in\reals^{k}$ and $Z\coloneqq h(Y)\in\reals^{k}$, and let
+	$J_{h\inv}(z)\in\reals^{k\times k}$ denote the Jacobian matrix of $h\inv$ at $z$.
+	Then
+	\begin{align}
+		f_{Z\given X}(z\given x,\theta)
+		=f_{Y\given X}(h\inv(z)\given x,\theta)
+		\left|\det J_{h\inv}(z)\right|.
+	\end{align}
+\end{remark}
+
+\end{document}

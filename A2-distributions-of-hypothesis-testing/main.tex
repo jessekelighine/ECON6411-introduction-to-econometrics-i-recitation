@@ -1,0 +1,189 @@
+%!TEX program = xelatex
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Notes: Distributions of Hypothesis Testing}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\appendix
+\section{Distributions of Hypothesis Testing}
+
+The normal, chi-squared, student $t$, and $F$ distributions are closely related.
+We define them through standard normal random variables and use these relationships
+to derive their limits and an application to regression residuals.
+Throughout, degrees of freedom are positive integers.
+
+\subsection{The Normal Distribution}
+
+\begin{definition}[Standard Normal Distribution]
+	A random variable $Z$ has the standard normal distribution, written $Z\sim\normaldistribution(0,1)$,
+	if its density is
+	\begin{align}
+		\phi(z)=\frac{1}{\sqrt{2\pi}}\exp\left(-\frac{z^2}{2}\right),
+		\qquad z\in\reals.
+	\end{align}
+	It has mean zero and variance one.
+	More generally, $Y=\mu+\sigma Z\sim\normaldistribution(\mu,\sigma^2)$ for $\sigma>0$,
+	so $(Y-\mu)/\sigma\sim\normaldistribution(0,1)$.
+\end{definition}
+
+\begin{remark}[Normal Vectors]
+	If $Z=(Z_1,\ldots,Z_n)\T\sim\normaldistribution(0,I_n)$,
+	then its components are independent standard normal random variables.
+	For any fixed matrix $A$, $AZ\sim\normaldistribution(0,AA\T)$.
+	In particular, if $U$ is orthogonal, then
+	$U\T Z\sim\normaldistribution(0,I_n)$:
+	rotating a standard normal vector preserves its distribution.
+\end{remark}
+
+\subsection{The Chi-Squared Distribution}
+
+\begin{definition}[Chi-Squared Distribution]
+	Let $Z_1,\ldots,Z_r$ be independent standard normal random variables.
+	Then
+	\begin{align}
+		V=\sum_{j=1}^rZ_j^2\sim\chi_r^2.
+	\end{align}
+	We say that $V$ has a chi-squared distribution with $r$ \emph{degrees of freedom}.
+	Here the degrees of freedom count the independent standard normal components being squared and added.
+\end{definition}
+
+\begin{proposition}\label{prop-chi-square-concentration}
+	If $T_r$ follows $\chi_r^2$, then
+	\begin{align}
+		\E(T_r)=r,\qquad \var(T_r)=2r,
+		\qquad \frac{T_r}{r}\pto 1\quad\text{as }r\to\infty.
+	\end{align}
+\end{proposition}
+\begin{proof}
+	For $Z\sim\normaldistribution(0,1)$, $\E(Z^2)=1$ and $\E(Z^4)=3$,
+	so $\var(Z^2)=2$.
+	Independence gives the stated mean and variance of the sum.
+	Thus $\E(T_r/r)=1$ and $\var(T_r/r)=2/r\to0$;
+	Chebyshev's inequality gives the convergence in probability.
+\end{proof}
+
+\subsection{The Student \texorpdfstring{$t$}{t} Distribution}
+
+\begin{definition}[Student $t$ Distribution]
+	Let $Z\sim\normaldistribution(0,1)$ and $V\sim\chi_\nu^2$ be independent.
+	Then
+	\begin{align}
+		T=\frac{Z}{\sqrt{V/\nu}}\sim t_\nu.
+	\end{align}
+	We say that $T$ has a $t$ distribution with $\nu$ degrees of freedom.
+	Its degrees of freedom come from the chi-squared variable in the denominator.
+\end{definition}
+
+\begin{remark}
+	The $t$ distribution is symmetric about zero, like the standard normal,
+	but has heavier tails because its denominator is random and can be small.
+	The independence of $Z$ and $V$ is essential for the stated distribution.
+\end{remark}
+
+\begin{remark}
+	A $t$ distribution with one degree of freedom is a Cauchy distribution.
+\end{remark}
+
+\begin{proposition}[Normal Limit of the $t$ Distribution]
+	If $T_\nu$ follows $t_\nu$, then $T_\nu\dto\normaldistribution(0,1)$ as $\nu\to\infty$.
+\end{proposition}
+\begin{proof}
+	Write $T_\nu=Z/\sqrt{V_\nu/\nu}$ with $Z\sim\normaldistribution(0,1)$
+	independent of $V_\nu\sim\chi_\nu^2$.
+	By \autoref{prop-chi-square-concentration} and the continuous mapping theorem,
+	$\sqrt{V_\nu/\nu}\pto1$.
+	Slutsky's theorem therefore gives $T_\nu\dto\normaldistribution(0,1)$.
+\end{proof}
+
+\subsection{The \texorpdfstring{$F$}{F} Distribution}
+
+\begin{definition}[$F$ Distribution]
+	Let $U\sim\chi_r^2$ and $V\sim\chi_\nu^2$ be independent.
+	Then
+	\begin{align}
+		F=\frac{U/r}{V/\nu}\sim F_{r,\nu}.
+	\end{align}
+	The first degree-of-freedom parameter, $r$, belongs to the numerator;
+	the second, $\nu$, belongs to the denominator.
+	Each chi-squared variable is divided by its own degrees of freedom.
+\end{definition}
+
+\begin{remark}[A Squared $t$ Distribution follows an $F$ Distribution]
+	If $T\sim t_\nu$, then $T^2\sim F_{1,\nu}$
+	since $T^2={Z^2}/(V/\nu)$ where $Z^2\sim\chi_1^2$ is independent of $V$.
+\end{remark}
+
+\begin{proposition}[Chi-Squared Limit of the $F$ Distribution]
+	For any fixed $r$, if $T_\nu$ follows $F_{r,\nu}$, then $rT_\nu\dto\chi_r^2$ as $\nu\to\infty$.
+\end{proposition}
+\begin{proof}
+	Write $T_\nu=(U/r)/(V_\nu/\nu)$ with independent
+	$U\sim\chi_r^2$ and $V_\nu\sim\chi_\nu^2$.
+	Since $V_\nu/\nu\pto1$, Slutsky's theorem gives the result.
+	The numerator degrees of freedom stay fixed in this limit.
+\end{proof}
+
+\subsection{Normal Quadratic Forms}
+
+\begin{proposition}\label{thm-normal-quadratic-form}
+	Let $Z\sim\normaldistribution(0,I_n)$ and let $M$ be a fixed $n\times n$ symmetric idempotent matrix
+	with rank $r\ge1$. Then
+	\begin{align}
+		Z\T MZ\sim\chi_r^2.
+	\end{align}
+\end{proposition}
+\begin{proof}
+	Since $M$ is symmetric, it has an orthogonal eigendecomposition $M=UDU\T$.
+	Idempotence implies that each eigenvalue satisfies $\lambda^2=\lambda$,
+	so each is either zero or one.
+	Since the rank is $r$, we can order the eigenvalues so that
+	\begin{align*}
+		D=\begin{pmatrix}I_r&0\\0&0\end{pmatrix}.
+	\end{align*}
+	Let $W=U\T Z\sim\normaldistribution(0,I_n)$. Then
+	\begin{align*}
+		Z\T MZ&=W\T DW=\sum_{j=1}^rW_j^2\sim\chi_r^2.
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{remark}
+	A symmetric idempotent matrix is an orthogonal projection.
+	Its rank counts the normal components retained by the projection,
+	which explains the degrees of freedom in the theorem.
+	If the rank is zero, the quadratic form is identically zero.
+\end{remark}
+
+\begin{example}[Regression Residuals]
+	Consider $Y=X\beta+e$, where $X$ is $n\times k$ with full column rank, $n>k$, and
+	\begin{align*}
+		e\given X\sim\normaldistribution(0,\sigma^2I_n),\qquad \sigma^2>0.
+	\end{align*}
+	The \gls{ols} residual vector is
+	\begin{align*}
+		\widehat e=MY=Me,\qquad M=I_n-X(X\T X)\inv X\T.
+	\end{align*}
+	Conditional on $X$, the matrix $M$ is fixed, symmetric, and idempotent,
+	with rank $n-k$. Also $e/\sigma\given X\sim\normaldistribution(0,I_n)$.
+	Since $M\T M=M$, \autoref{thm-normal-quadratic-form} gives
+	\begin{align}
+		\frac{\widehat e\T\widehat e}{\sigma^2}
+		=\left(\frac{e}{\sigma}\right)\T M\left(\frac{e}{\sigma}\right)
+		\given[\Big] X\sim\chi_{n-k}^2.
+	\end{align}
+	The conditional distribution does not depend on $X$, so the same distribution holds unconditionally.
+	Estimating $k$ coefficients removes $k$ dimensions, leaving $n-k$ residual degrees of freedom.
+	Here $k$ includes the intercept if one is estimated.
+\end{example}
+
+
+\end{document}
