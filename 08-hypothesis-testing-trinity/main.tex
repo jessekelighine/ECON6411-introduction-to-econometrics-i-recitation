@@ -225,6 +225,12 @@ The unrestricted and restricted maximum likelihood estimators are
 	These conditions exclude redundant restrictions and boundary problems.
 \end{remark}
 
+\begin{remark}
+	The \gls{lm} and \gls{lr} approaches extend beyond likelihood-based estimation, for example to \gls{gmm}.
+	Such extensions require appropriate covariance estimation or weighting.
+	Here we use the likelihood formulation to simplify the exposition and connect to the classical literature.
+\end{remark}
+
 \subsection{The Lagrange Multiplier Test}
 
 To solve the restricted maximization problem, form the Lagrangian
@@ -339,6 +345,40 @@ The \gls{lm} test, also called the \emph{score test}, asks whether this remainin
 	The equivalent multiplier form therefore explains the $q$ degrees of freedom.
 \end{remark}
 
+\begin{remark}[Wald and \gls{lm} under Linear Restrictions]
+	In the normal linear model, consider $H_0:R\beta=r_0$ as in \autoref{sec-f-test}.
+	Let $\widehat\beta$ and $\widetilde\beta$ be the unrestricted and restricted estimates, with
+	\begin{align*}
+		\widehat\sigma^2=\frac{(Y-X\widehat\beta)\T(Y-X\widehat\beta)}{n}
+		\quad\text{and}\quad
+		\widetilde\sigma^2=\frac{(Y-X\widetilde\beta)\T(Y-X\widetilde\beta)}{n}.
+	\end{align*}
+	Using $X\T Y=X\T X\widehat\beta$ and the formula for the restricted estimator $\widetilde\beta$, the coefficient score is
+	\begin{align*}
+		\frac{\partial\ell_n}{\partial\beta}(\widetilde\beta,\widetilde\sigma^2)
+		=\frac{X\T(Y-X\widetilde\beta)}{n\widetilde\sigma^2}
+		=\frac{X\T X(\widehat\beta-\widetilde\beta)}{n\widetilde\sigma^2}
+		=\frac{R\T\big[R(X\T X)\inv R\T\big]\inv(R\widehat\beta-r_0)}{n\widetilde\sigma^2}.
+	\end{align*}
+	Thus the restricted score is a linear transformation of the same restriction discrepancy $R\widehat\beta-r_0$ used by Wald.
+	Using the conditional expected information for \gls{lm} gives
+	\begin{align*}
+		T_{\mathrm W}
+		&=(R\widehat\beta-r_0)\T\big[{\widehat\sigma^2}R(X\T X)\inv R\T\big]\inv(R\widehat\beta-r_0),\\
+		T_{\mathrm{LM}}
+		&=(R\widehat\beta-r_0)\T\big[{\widetilde\sigma^2}R(X\T X)\inv R\T\big]\inv(R\widehat\beta-r_0).
+	\end{align*}
+	Thus they have the same numerator and differ only in whether the error variance is estimated under the unrestricted or restricted model.
+	This fact will determine the finite-sample ordering of the two statistics, see \autoref{ex-normal-mean-unknown-variance}.
+\end{remark}
+
+\begin{remark}[Auxiliary Regression]
+	In the normal linear model, the \gls{lm} test for excluded regressors can be computed as $nR^2$
+	from an auxiliary regression of the restricted residuals on all the regressors.
+	It asks whether the excluded regressors help explain what the restricted model leaves unexplained.
+	See \autoref{sec-lm-auxiliary} for the derivation and assumptions.
+\end{remark}
+
 \subsection{The Likelihood Ratio Test}
 
 The restricted parameter set is contained in the unrestricted one, so
@@ -405,7 +445,6 @@ The \gls{lr} compares the maximized likelihoods:
 	Since $\ell_n$ is an average, the factor $n$ in \eqref{eq-lr} is essential.
 \end{remark}
 
-\newpage
 \section{Understanding the Trinity}
 
 \begin{theorem}[Trinity of Hypothesis Testing]\label{thm-trinity}
@@ -417,7 +456,7 @@ The \gls{lr} compares the maximized likelihoods:
 		T_{\mathrm W}-T_{\mathrm{LM}}\pto0,
 		\qquad T_{\mathrm{LR}}-T_{\mathrm{LM}}\pto0.
 	\end{align}
-	Thus the three statistics are asymptotically equivalent and each has a $\chi_q^2$ limiting distribution.
+	Thus all three are asymptotically equivalent with a $\chi_q^2$ limit.
 \end{theorem}
 \begin{proof}
 	The proof of \autoref{thm-lr} already established $T_{\mathrm{LR}}=T_{\mathrm{LM}}+o_p(1)$.
@@ -440,12 +479,6 @@ The \gls{lr} compares the maximized likelihoods:
 	These two identities establish the claimed equivalence; the common limiting distribution follows from \autoref{thm-lm}.
 \end{proof}
 
-\begin{remark}[Size and Power]
-	Having the same limiting distribution under the null implies that the three tests have the same asymptotic size.
-	Against fixed alternatives for which the tests are consistent, their power converges to one.
-	Hence, the trinity does not tell us which test is more powerful in finite samples.
-\end{remark}
-
 \begin{example}[A Normal Mean with Known Variance]\label{ex-normal-mean}
 	Suppose $Y_i\iidto\normaldistribution(\mu,\sigma^2)$ with known $\sigma^2$,
 	and test $H_0:\mu=\mu_0$.
@@ -463,14 +496,64 @@ The \gls{lr} compares the maximized likelihoods:
 	In this simple case, all three statistics agree exactly, not just asymptotically.
 \end{example}
 
-\begin{figure}[t]
-	\centering
-	\includegraphics[scale=0.28]{figures/holy-trinity.png}
-	\caption{Quote from \textcite[1229]{hausman-mcfadden-1984}.}
-	\label{fig-holy-trinity}
-\end{figure}
+\begin{example}[A Normal Mean with Unknown Variance]\label{ex-normal-mean-unknown-variance}
+	Now consider the same test as in \autoref{ex-normal-mean}, but with $\sigma^2$ unknown.
+	The mean estimates remain $\widehat\mu=\overline Y$ and $\widetilde\mu=\mu_0$,
+	while the maximum likelihood variance estimates are
+	\begin{align*}
+		\widehat\sigma^2=\frac1n\sum_i(Y_i-\overline Y)^2
+		\quad\text{and}\quad
+		\widetilde\sigma^2=\frac1n\sum_i(Y_i-\mu_0)^2
+		=\widehat\sigma^2+(\overline Y-\mu_0)^2.
+	\end{align*}
+	Thus the restricted fit attributes the discrepancy between $\overline Y$ and $\mu_0$ to a larger error variance.
+	The restricted mean score is $(\overline Y-\mu_0)/\widetilde\sigma^2$;
+	the variance score is zero, and the expected information has zero cross-term between $\mu$ and $\sigma^2$.
+	Using this information for \gls{lm}, the three statistics become
+	\begin{align*}
+		T_{\mathrm W}&=\frac{n(\overline Y-\mu_0)^2}{\widehat\sigma^2},\\
+		T_{\mathrm{LM}}&=\frac{n(\overline Y-\mu_0)^2}{\widetilde\sigma^2}
+		=\frac{n(\overline Y-\mu_0)^2}{\widehat\sigma^2+(\overline Y-\mu_0)^2},\\
+		T_{\mathrm{LR}}&=n\log\left(\frac{\widetilde\sigma^2}{\widehat\sigma^2}\right)
+		=n\log\left(1+\frac{(\overline Y-\mu_0)^2}{\widehat\sigma^2}\right).
+	\end{align*}
+	Unlike the known-variance case, these need not agree in finite samples.
+	Wald uses the smaller variance estimate, \gls{lm} uses the larger one, and \gls{lr} lies between them,
+	as the following remark shows.
+\end{example}
+
+\begin{remark}[Finite-Sample Ordering]
+	In the normal linear model with unknown variance, consider the linear restrictions $H_0:R\beta=r_0$.
+	Imposing the restrictions cannot improve the least-squares fit,
+	so the maximum likelihood variance estimates satisfy $\widetilde\sigma^2\ge\widehat\sigma^2$.
+	The Wald and \gls{lm} formulas above, together with the maximized Gaussian log-likelihood, give
+	\begin{align*}
+		T_{\mathrm W}&=n\left(\frac{\widetilde\sigma^2}{\widehat\sigma^2}-1\right),
+		& T_{\mathrm{LR}}&=n\log\left(\frac{\widetilde\sigma^2}{\widehat\sigma^2}\right),
+		& T_{\mathrm{LM}}&=n\left(1-\frac{\widehat\sigma^2}{\widetilde\sigma^2}\right).
+	\end{align*}
+	Since $1-1/a\le\log a\le a-1$ for $a\ge1$, we obtain the finite-sample ordering
+	\begin{align*}
+		T_{\mathrm W}\ge T_{\mathrm{LR}}\ge T_{\mathrm{LM}}.
+	\end{align*}
+	Wald uses the smaller, unrestricted variance estimate, while \gls{lm} uses the larger, restricted estimate; \gls{lr} lies between them.
+	With the same $\chi_q^2$ critical value, Wald rejects at least as often as \gls{lr}, which rejects at least as often as \gls{lm}.
+\end{remark}
+
+\begin{remark}[Size and Power]
+	The ordering above is a finite-sample result.
+	Under the null, the differences between the three statistics converge to zero, and all three tests have the same asymptotic size.
+	Against fixed alternatives for which the tests are consistent, their power converges to one.
+	Hence, the trinity does not tell us which test is more powerful in finite samples.
+\end{remark}
 
 \begin{remark}[History of the Holy Trinity]
+	\begin{figure}[t]
+		\centering
+		\includegraphics[scale=0.28]{figures/holy-trinity.png}
+		\caption{A quote from \textcite[1229]{hausman-mcfadden-1984}.}
+		\label{fig-holy-trinity}
+	\end{figure}
 	The \gls{lr} test/principle of testing was first proposed by \textcite{neyman-pearson-1928},
 	and its asymptotic distribution was established by \textcite{wilks-1938}.
 	\textcite{wald-1943} proposed the Wald test, and \textcite{rao-1948} proposed the score test,
@@ -547,5 +630,46 @@ For a single restriction, $T_F=T_t^2$ exactly when both use the same $s^2$.
 	but dividing it by $q$ does not give an exact $F_{q,n-k}$ distribution.
 	The residual-sum-of-squares formula above is not a robust test.
 \end{remark}
+
+\section{An Auxiliary Regression for the \texorpdfstring{\gls{lm}}{LM} Test}\label{sec-lm-auxiliary}
+
+Consider the normal linear model
+\begin{align*}
+	Y=X_1\beta_1+X_2\beta_2+e,
+	\qquad e\given X\sim\normaldistribution(0,\sigma^2 I_n),
+\end{align*}
+where $X=[X_1\;X_2]$ has full column rank and fewer columns than observations,
+$X_1$ contains an intercept, and $X_2$ has $q$ columns.
+We test $H_0:\beta_2=0$.
+First regress $Y$ on $X_1$ only, obtaining restricted residuals
+$\widetilde e=Y-X_1\widetilde\beta_1$ and the restricted variance estimate
+$\widetilde\sigma^2=\widetilde e\T\widetilde e/n$.
+Then run the \emph{auxiliary regression} of $\widetilde e$ on all the regressors $X=[X_1\;X_2]$.
+Writing $P_X=X(X\T X)\inv X\T$, its fitted values are $P_X\widetilde e$.
+Since the restricted regression includes an intercept, $\widetilde e$ has sample mean zero, so
+\begin{align*}
+	R_{\mathrm{aux}}^2
+	=\frac{\widetilde e\T P_X\widetilde e}{\widetilde e\T\widetilde e}.
+\end{align*}
+To connect this to the score formula, write $\beta=(\beta_1\T,\beta_2\T)\T$.
+The average coefficient score and its model-based information estimate are
+\begin{align*}
+	\frac{\partial\ell_n}{\partial\beta}(\widetilde\beta,\widetilde\sigma^2)
+	=\frac{X\T\widetilde e}{n\widetilde\sigma^2},
+	\qquad
+	\widetilde I_{\beta\beta}=\frac{X\T X}{n\widetilde\sigma^2}.
+\end{align*}
+Here we use the conditional expected information evaluated at the restricted estimates;
+its cross-block between $\beta$ and $\sigma^2$ is zero, and the variance score is zero at the restricted fit.
+Thus \eqref{eq-lm} reduces to
+\begin{align}
+	T_{\mathrm{LM}}
+	=\frac{\widetilde e\T P_X\widetilde e}{\widetilde\sigma^2}
+	=nR_{\mathrm{aux}}^2
+	\dto\chi_q^2\quad\text{under }H_0.
+\end{align}
+The intuition is simple: do the excluded regressors help explain what the restricted model leaves unexplained?
+Although $X_1\T\widetilde e=0$, we retain $X_1$ in the auxiliary regression to control for its correlation with $X_2$.
+This $nR^2$ formula uses the homoskedastic model; it is not automatically robust to heteroskedasticity.
 
 \end{document}

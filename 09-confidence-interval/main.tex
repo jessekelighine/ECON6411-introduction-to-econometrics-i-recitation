@@ -1,0 +1,140 @@
+%!TEX program = xelatex 
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Notes: Confidence Intervals}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\maketitle
+
+\noindent
+Let $D_n$ denote the sample and $\theta\in\Theta\subseteq\reals$ the unknown parameter.
+We report a range of values to describe the uncertainty in estimating $\theta$.
+
+\begin{definition}[Confidence Interval/Set]
+	A $(1-\alpha)$ confidence interval/set is a data-dependent interval/set $C_n(D_n)$ satisfying
+	\begin{align}
+		\Pr_\theta\big\{\theta\in C_n(D_n)\big\}\ge1-\alpha
+		\quad\forall \theta\in\Theta.
+	\end{align}
+	An asymptotic confidence interval/set has this coverage guarantee in the limit.
+\end{definition}
+
+\begin{remark}[An \emph{Ex Ante} Statement]
+	The parameter is fixed and the interval varies across repeated samples.
+	A 95\% confidence procedure covers the true parameter in at least 95\% of those samples.
+	Hence, it is an \emph{ex ante} statement about the \emph{procedure} before observing the data.
+	The realized interval either contains the parameter or does not:
+	the guarantee is \textsc{not} a 95\% probability about the parameter after observing the data.
+\end{remark}
+
+\begin{example}[Coverage and Informativeness]
+	Consider the following procedure for a 95\% confidence set for $\theta$:
+	independently of the data, report the confidence interval $C$ as
+	\begin{align}
+		C = 
+		\begin{cases}
+			\reals, & \text{ with probability $0.95$}\\
+			\varnothing, & \text{ with probability $0.05$.}
+		\end{cases}
+	\end{align}
+	The set $C$ is a valid 95\% confidence set.
+	This guarantee is \emph{ex ante}: before the random choice, coverage has probability $0.95$.
+	\emph{Ex post}, in this example, we know whether coverage occurred: $\reals$ certainly contains $\theta$, while $\varnothing$ certainly does not.
+\end{example}
+
+\section{Constructing a Confidence Interval: Normal-Based Method}
+
+\begin{theorem}[Normal-Based Confidence Interval]
+	Suppose
+	\begin{align}
+		\sqrt n(\widehat\theta-\theta)\dto\normaldistribution(0,V)
+		\quad\text{and}\quad
+		\widehat V\pto V>0.
+	\end{align}
+	Then, the following set is an asymptotic $(1-\alpha)$ confidence interval:
+	\begin{align}\label{eq-normal-ci}
+		C_n=\left[\widehat\theta-z_{1-\alpha/2}\operatorname{se}(\widehat\theta),
+		\widehat\theta+z_{1-\alpha/2}\operatorname{se}(\widehat\theta)\right]
+	\end{align}
+	where $\operatorname{se}(\widehat\theta)=(\widehat V/n)^{1/2}$ and
+	$z_{1-\alpha/2}$ is the $(1-\alpha/2)$ quantile of the standard normal distribution.
+\end{theorem}
+\begin{proof}
+	By Slutsky's theorem, we have
+	\begin{align}
+		\frac{\widehat\theta-\theta}{\operatorname{se}(\widehat\theta)}\dto\normaldistribution(0,1)
+		\implies \Pr_\theta\left\{-z_{1-\alpha/2} \leq \frac{\widehat\theta-\theta}{\operatorname{se}(\widehat\theta)}\le z_{1-\alpha/2}\right\}\to1-\alpha.
+	\end{align}
+	Then, rearranging terms in the probability statement gives
+	\begin{align*}
+		&\raum \Pr_\theta\left\{-z_{1-\alpha/2}\operatorname{se}(\widehat\theta)\leq \widehat\theta-\theta \leq z_{1-\alpha/2}\operatorname{se}(\widehat\theta)\right\} \\
+		&= \Pr_\theta\left\{\widehat\theta-z_{1-\alpha/2}\operatorname{se}(\widehat\theta)\leq \theta \leq \widehat\theta+z_{1-\alpha/2}\operatorname{se}(\widehat\theta)\right\} \\
+		&= \Pr_\theta\left\{\theta \in C_n(D_n)\right\}\to 1-\alpha.
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{example}[A Regression Coefficient]\label{ex-ols-ci}
+	For an \gls{ols} estimate $\widehat\beta_j=0.30$ with standard error $0.10$,
+	the approximate 95\% interval is $[0.3 - 1.96\times 0.1,\; 0.3 + 1.96\times 0.1]=[0.104,\;0.496]$.
+\end{example}
+
+\section{Constructing a Confidence Interval: Test Inversion}
+
+\begin{definition}[Test Inversion]\label{def-test-inversion}
+	For each candidate value $\bar\theta$, consider a level-$\alpha$ test of $H_0:\theta=\bar\theta$.
+	A \emph{test inversion} confidence set is the collection of values that the corresponding tests \textsc{do not} reject:
+	\begin{align}\label{eq-test-inversion}
+		C_n(D_n)=\{\bar\theta\in\Theta:
+		\text{the test of }H_0:\theta=\bar\theta\text{ does not reject}\}.
+	\end{align}
+\end{definition}
+
+\begin{theorem}[Test Inversion Confidence Set]
+	If each test has size at most $\alpha$,
+	then \eqref{eq-test-inversion} is a $(1-\alpha)$ confidence set.
+\end{theorem}
+\begin{proof}
+	By definition, $\theta\in C_n$ if and only if the test with $\bar\theta=\theta$ does not reject.
+	Hence,
+	\begin{align*}
+		\Pr_\theta(\theta\in C_n)
+		=1-\Pr_\theta(\text{reject the test with }\bar\theta=\theta)
+	\end{align*}
+	Since the test has size at most $\alpha$, we have
+	\begin{align*}
+		\Pr_\theta(\text{reject the test with }\bar\theta=\theta)\le\alpha
+		&\implies \Pr_\theta(\theta\in C_n)\ge1-\alpha.
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{remark}
+	The same argument gives asymptotic coverage when the tests have asymptotic size control.
+	For the two-sided normal-based test, we do not reject a candidate $\bar\theta$ precisely when
+	\begin{align}
+		\left|\frac{\widehat\theta-\bar\theta}{\operatorname{se}(\widehat\theta)}\right|
+		\le z_{1-\alpha/2}
+		\iff
+		\widehat\theta-z_{1-\alpha/2}\operatorname{se}(\widehat\theta)
+		\le\bar\theta\le
+		\widehat\theta+z_{1-\alpha/2}\operatorname{se}(\widehat\theta).
+	\end{align}
+	Thus, for the normal-based test, the set \eqref{eq-test-inversion} coincides with \eqref{eq-normal-ci},
+	intersected with $\Theta$ if necessary.
+\end{remark}
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+\end{document}
