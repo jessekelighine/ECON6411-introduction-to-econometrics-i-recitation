@@ -1,0 +1,367 @@
+%!TEX program = xelatex
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Notes: Model Selection}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\maketitle
+
+\noindent
+Consider candidate regressions indexed by $m$,
+each fitted by \gls{ols} on the same $T$ observations.
+Let $k_m<T$ be the number of regression coefficients including intercepts.
+Define
+\begin{align}
+    \mathrm{RSS}_m=\sum_{t=1}^T\widehat e_{t,m}^2
+	\quad\text{and}\quad
+    \widehat\sigma_m^2=\frac{\mathrm{RSS}_m}{T}.
+\end{align}
+For regressions with an intercept, adjusted $R^2$ is
+\begin{align}
+    \overline R_m^2
+    =1-\frac{\mathrm{RSS}_m/(T-k_m)}
+    {\sum_{t=1}^T(Y_t-\overline Y)^2/(T-1)}.
+\end{align}
+Its denominator is common across models.
+Thus maximizing adjusted $R^2$ is equivalent to minimizing
+$s_m^2=\mathrm{RSS}_m/(T-k_m)$.
+Taking logarithms and multiplying by $T$ does not change the ranking:
+\begin{align}
+    T\log s_m^2
+    &=T\log\widehat\sigma_m^2-T\log(1-k_m/T)\\
+    &=T\log\widehat\sigma_m^2+k_m+O(T^{-1}),\label{eq-adjusted-penalty}
+\end{align}
+where the expansion holds for fixed $k_m$ as $T\to\infty$.
+Adjusted $R^2$ therefore imposes approximately a penalty of one per regression coefficient.
+
+\section{Information Criteria}
+
+Let $\ell_{T,m}(\theta_m)$ denote the \emph{average} log-likelihood in model $m$,
+and let $d_m$ count all its estimated parameters.
+An information criterion takes the form
+\begin{align}\label{eq-general-ic}
+    \mathrm{IC}_T(m)
+    =-2T\ell_{T,m}(\widehat\theta_m)+C_Td_m.
+\end{align}
+We select the model with the smallest value.
+The first term rewards fit, while the second penalizes complexity.
+
+\begin{definition}[\glsentryshort{aic}]\label{def-aic}
+	The \gls{aic} is defined as
+	\begin{align}
+		\mathrm{AIC}(m)&=-2T\ell_{T,m}(\widehat\theta_m)+2d_m.
+	\end{align}
+	That is, $C_T=2$ in \eqref{eq-general-ic}.
+\end{definition}
+
+\begin{definition}[\glsentryshort{bic}]\label{def-bic}
+	The \gls{bic} is defined as
+	\begin{align}
+		\mathrm{BIC}(m)&=-2T\ell_{T,m}(\widehat\theta_m)+d_m\log T.
+	\end{align}
+	That is, $C_T=\log T$ in \eqref{eq-general-ic}.
+\end{definition}
+
+\begin{remark}[Penalties]
+	For homoskedastic Gaussian regressions, adjusted $R^2$, \gls{aic}, and \gls{bic}
+	differ in their penalties:
+	\begin{center}
+		\begin{tabular}{lc}
+			\toprule
+			Criterion & Penalty per regression coefficient\\
+			\midrule
+			Adjusted $R^2$ & Approximately $1$\\
+			\glsentryshort{aic} & $2$\\
+			\glsentryshort{bic} & $\log T$\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{remark}
+
+\begin{remark}[Does \glsentryshort{bic} Select a Smaller Model?]
+	For $T>\exp(2)$,
+	\gls{bic} penalizes each additional parameter more heavily than \gls{aic}.
+    On the same candidate set, with the same likelihoods and parameter counts,
+    its selected model cannot have more parameters than the \gls{aic} selection,
+    though they could select the same model.
+\end{remark}
+
+\begin{definition}[Correctly Specified Model]
+	Consider a fixed, finite sequence of nested candidate models, indexed by increasing size.
+	A model $m$ is \emph{correctly specified} if the true data-generating process is contained in it.
+	Assume at least one candidate is correct.
+	The smallest correct model $m_0$ is the one with the fewest parameters among all correct models.
+	Models below $m_0$ omit relevant terms; those above it include unnecessary ones.
+\end{definition}
+
+\begin{definition}[Selection Consistency]
+    A selection rule $\widehat m$ is consistent for the smallest correct model if
+    \begin{align}
+        \Pr(\widehat m=m_0)\to1
+        \quad\text{as}\quad
+		T\to\infty.
+    \end{align}
+\end{definition}
+
+\subsection{Underfitting versus Overfitting}
+
+Write $\widehat\ell_m=\ell_{T,m}(\widehat\theta_m)$.
+The distinction between omitting a relevant term and adding an irrelevant one is crucial.
+In regular, correctly specified likelihood models, the relevant orders are
+\begin{align}
+    2(\widehat\ell_{m_0}-\widehat\ell_m)&\pto\delta_m>0
+    &&\text{if }m<m_0,\label{eq-underfit}\\
+    2T(\widehat\ell_m-\widehat\ell_{m_0})&=O_p(1)
+    &&\text{if }m>m_0.\label{eq-overfit}
+\end{align}
+The first follows from a strictly worse population fit for an underfitted model.
+The second is the usual likelihood-ratio behavior under redundant restrictions.
+Thus the total fit loss from underfitting is of order $T$,
+whereas the total fit gain from overfitting is only of order one.
+
+\begin{theorem}[A Penalty That Separates the Two Cases]\label{thm-selection}
+    Suppose the candidate set is fixed, finite, and nested, contains a unique smallest
+    correct model $m_0$, and satisfies \eqref{eq-underfit} and \eqref{eq-overfit}.
+    If
+    \begin{align}\label{eq-penalty-rates}
+        C_T\to\infty
+        \qquad\text{and}\qquad
+        \frac{C_T}{T}\to0,
+    \end{align}
+    then minimizing \eqref{eq-general-ic} consistently selects $m_0$.
+\end{theorem}
+\begin{proof}[Proof Sketch]
+    For an underfitted model, divide the criterion difference by $T$:
+    \begin{align*}
+        \frac{\mathrm{IC}_T(m)-\mathrm{IC}_T(m_0)}{T}
+        =2(\widehat\ell_{m_0}-\widehat\ell_m)
+        +\frac{C_T}{T}(d_m-d_{m_0})
+        \pto\delta_m>0.
+    \end{align*}
+    The penalty saving cannot compensate for the loss of fit.
+    For an overfitted model,
+    \begin{align*}
+        \mathrm{IC}_T(m)-\mathrm{IC}_T(m_0)
+        =-O_p(1)+C_T(d_m-d_{m_0})\pto+\infty.
+    \end{align*}
+    The growing penalty dominates the random improvement in fit.
+    Since there are finitely many candidates, $m_0$ beats all of them with probability tending to one.
+\end{proof}
+
+\begin{remark}[Constant Penalties Retain Unnecessary Parameters]
+	Compare $m_0$ with a larger model containing $q$ additional parameters.
+	Under the usual likelihood-ratio conditions,
+	\begin{align}
+		T_{\mathrm{LR}}=2T(\widehat\ell_m-\widehat\ell_{m_0})\dto\chi_q^2.
+	\end{align}
+	A criterion with $C_T=C<\infty$ prefers the larger model whenever
+	$T_{\mathrm{LR}}>Cq$.
+	Consequently,
+	\begin{align}
+		\Pr\{\mathrm{IC}_T(m)<\mathrm{IC}_T(m_0)\}
+		\to\Pr(\chi_q^2>Cq)>0.
+	\end{align}
+	The chance of retaining unnecessary parameters does not vanish.
+	This applies to \gls{aic}, with $C=2$, and to adjusted $R^2$,
+	whose expansion \eqref{eq-adjusted-penalty} gives $C=1$.
+	It assumes that at least one overfitted candidate is available.
+\end{remark}
+
+\begin{example}[One Unnecessary Regressor]
+    Compare the smallest correct model with a model that adds one unnecessary regressor,
+    so the number of additional parameters is $q=1$.
+    \Gls{aic} prefers the larger model with limiting probability
+    $\Pr(\chi_1^2>2)\approx0.157$.
+    For adjusted $R^2$, the probability is $\Pr(\chi_1^2>1)\approx0.317$.
+    These probabilities do not go to zero as the sample grows.
+    In contrast, the \gls{bic} threshold is $\log T\to\infty$.
+\end{example}
+
+\section{So Why Use \glsentryshort{aic}?}
+
+Finding the smallest correct model is not always the goal.
+We may instead want the finite model that predicts best,
+especially when no finite candidate captures the true conditional mean exactly.
+To motivate this idea, we introduce yet another information criterion: \emph{Mallows' $C_p$}.
+% The motivation for \gls{aic} is easier to see through Mallows' $C_p$:
+% correct the in-sample fit so that it estimates out-of-sample prediction error.
+
+\subsection{Mallows' \texorpdfstring{$C_p$}{Cp}: In-Sample versus Out-of-Sample Prediction}
+
+Treat the regressors as fixed and write $Y=\mu+e$, where $\E e=0$
+and $\var(e)=\sigma^2 I_T$.
+The true mean vector $\mu$ need not lie in any candidate model.
+Let $P_m$ project onto the $k_m$ regressors in model $m$,
+so the fitted values are $\widehat Y_m=P_mY$.
+
+Imagine observing new outcomes at the \emph{same regressor values}:
+$Y^{\mathrm{out}}=\mu+e^{\mathrm{out}}$,
+where $e^{\mathrm{out}}$ is an independent copy of $e$.
+What is the expected prediction error for the new outcomes, using the fitted values from the original sample?
+Holding the regressors fixed, expectations average over the original sample
+and, for out-of-sample prediction, the independent new outcomes:
+\begin{align}
+    \E\|Y-\widehat Y_m\|^2
+    &=\|(I_T-P_m)\mu\|^2+\E\bigl[e\T(I_T-P_m)e\bigr]\notag\\
+    &=\|(I_T-P_m)\mu\|^2+\operatorname{tr}\bigl[(I_T-P_m)\E(ee\T)\bigr]\notag\\
+    &=T\sigma^2-k_m\sigma^2+\|(I_T-P_m)\mu\|^2,\label{eq-cp-in}\\
+    \E\|Y^{\mathrm{out}}-\widehat Y_m\|^2
+    &=\|(I_T-P_m)\mu\|^2+\E\|e^{\mathrm{out}}\|^2+\E(e\T P_m e)\notag\\
+    &=\|(I_T-P_m)\mu\|^2+\sigma^2\operatorname{tr}(I_T)+\sigma^2\operatorname{tr}(P_m)\notag\\
+    &=T\sigma^2+k_m\sigma^2+\|(I_T-P_m)\mu\|^2.\label{eq-cp-out}
+\end{align}
+% For \eqref{eq-cp-in}, expand $Y-\widehat Y_m=(I_T-P_m)\mu+(I_T-P_m)e$.
+% The cross term has expectation zero because $\E e=0$.
+% Then use the symmetry and idempotence of $I_T-P_m$,
+% $\E(ee\T)=\sigma^2 I_T$, and $\operatorname{tr}(P_m)=k_m$.
+% For \eqref{eq-cp-out}, expand $Y^{\mathrm{out}}-\widehat Y_m=(I_T-P_m)\mu+e^{\mathrm{out}}-P_me$.
+All cross terms have expectation zero because $e^{\mathrm{out}}$ and $e$ are independent and mean zero;
+the same projection and trace identities give the result.
+
+The in-sample fit benefits from fitting noise, producing the term $-k_m\sigma^2$.
+That fitted noise does not help predict the new outcomes; instead, it adds $k_m\sigma^2$ to their prediction error.
+Subtracting \eqref{eq-cp-in} from \eqref{eq-cp-out} gives the key identity:
+\begin{align}\label{eq-cp-correction}
+    \E\|Y^{\mathrm{out}}-\widehat Y_m\|^2
+    =\E(\mathrm{RSS}_m)+2k_m\sigma^2.
+\end{align}
+Therefore, we can actually estimate the expected out-of-sample prediction error from the in-sample residual sum of squares,
+provided we add the correction term $2k_m\sigma^2$.
+
+\begin{definition}[Mallows' $C_p$]
+    Let $\widetilde\sigma^2$ be a common consistent estimate of the error variance, used for every candidate model.
+	Mallows' $C_p$ is defined as
+    \begin{align}
+        C_p(m)=\frac{\mathrm{RSS}_m+2k_m\widetilde\sigma^2}{T}.
+    \end{align}
+\end{definition}
+
+\begin{remark}[Interpretation of $C_p$]
+    With $\sigma^2$ in place of $\widetilde\sigma^2$, \eqref{eq-cp-correction} shows that
+    this is an unbiased estimate of average out-of-sample squared prediction error.
+    Thus minimizing $C_p$ aims to select the model with the smallest prediction error.
+\end{remark}
+
+\begin{remark}[The Usual $C_p$]
+    Mallows' $C_p$ is more commonly written as
+    \begin{align}\label{eq-cp-usual}
+        C_p^{\mathrm{usual}}(m)
+        =\frac{\mathrm{RSS}_m}{\widetilde\sigma^2}-T+2k_m
+        =\frac{T}{\widetilde\sigma^2}C_p(m)-T.
+    \end{align}
+    Since $T$ and the positive variance estimate $\widetilde\sigma^2$ are common to all models,
+    the two definitions give exactly the same ranking.
+    We use the prediction-error scale to make the out-of-sample interpretation clearer.
+\end{remark}
+
+\subsection{\glsentryshort{aic} and Prediction}
+
+To put $C_p$ in information-criterion form \eqref{eq-general-ic},
+use \eqref{eq-cp-usual} to write
+\begin{align}
+	\mathrm{IC}_{C_p}(m)
+	=\frac{T}{\widetilde\sigma^2}C_p(m)
+	=\frac{\mathrm{RSS}_m}{\widetilde\sigma^2}+2k_m.
+\end{align}
+This has a fit term and a penalty of two per regression coefficient, just like \gls{aic}.
+The common positive rescaling does not change the selected model.
+For independent Gaussian errors with variance $\sigma^2$ held fixed,
+the maximized average log-likelihood is
+\begin{align}
+	\ell_{T,m}(\widehat\beta_m)
+	=-\frac12\log(2\pi\sigma^2)-\frac{\mathrm{RSS}_m}{2T\sigma^2}.
+\end{align}
+Thus the fit term in \gls{aic} is
+\begin{align}
+	-2T\ell_{T,m}(\widehat\beta_m)
+	=T\log(2\pi\sigma^2)+\frac{\mathrm{RSS}_m}{\sigma^2}.
+\end{align}
+The log term is common to all models, so removing it does not change the ranking of candidates.
+Adding the penalty and using $\sigma^2$
+in $\mathrm{IC}_{C_p}$ gives
+\begin{align}
+	\mathrm{AIC}(m)
+	=\mathrm{IC}_{C_p}(m)+\text{constant}.
+\end{align}
+Therefore, \gls{aic} and $C_p$ select the same model in this case:
+both aim to minimize prediction error rather than identify the smallest correct model.
+
+\begin{remark}[Estimating the Variance Separately]
+	Estimating the variance separately in each model instead gives, after dropping common terms,
+	\begin{align}\label{eq-regression-ic}
+		\mathrm{AIC}(m)=T\log\widehat\sigma_m^2+2k_m,
+		\qquad \widehat\sigma_m^2=\mathrm{RSS}_m/T.
+	\end{align}
+	This need not give exactly the same ranking as $C_p$, but the predictive motivation remains:
+	the penalty corrects the overly optimistic in-sample fit,
+	rather than forcing the probability of selecting unnecessary regressors to zero.
+\end{remark}
+
+\begin{remark}[Different Goals]
+    \Gls{bic} targets the smallest correct model, whereas \gls{aic} targets predictive fit.
+    If every finite model is an approximation, retaining more terms can improve prediction
+    even though it increases the number of estimated parameters.
+    This explains why selection consistency alone does not settle which criterion to use;
+    it does not mean that \gls{aic} always forecasts better in finite samples.
+\end{remark}
+
+\begin{remark}[An Information-Theoretic Motivation]
+	The connection to $C_p$ illustrates the predictive purpose of \gls{aic} using squared error.
+	This is but one of many ways to motivate the criterion.
+	\href{https://doi.org/10.1007/978-1-4612-1694-0_15}{Akaike (1973)} motivates the criterion
+	through expected Kullback-Leibler divergence from the true distribution to the fitted model.
+	Akaike's work helped establish the modern information-theoretic approach to model selection,
+	placing predictive performance at its center.
+\end{remark}
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+\clearpage
+\appendix
+
+\section{Example: Selecting the Order of an Autoregression}
+
+Observe $Y_1,\ldots,Y_N$ and choose a maximum candidate order $p_{\max}$.
+For each $p=0,\ldots,p_{\max}$, fit
+\begin{align}
+	Y_t=c+\alpha_1Y_{t-1}+\cdots+\alpha_pY_{t-p}+e_{t,p}.
+\end{align}
+Use the \emph{same dependent observations} for every candidate:
+\begin{align}
+	t=p_{\max}+1,\ldots,N,
+	\qquad T=N-p_{\max}.
+\end{align}
+The first $p_{\max}$ observations supply the lags.
+We do not start each regression at its own date $p+1$,
+because that would compare likelihoods and residual sums of squares from different samples.
+With an intercept, $k_p=p+1$.
+Calculate
+\begin{align}
+	\widehat\sigma_p^2
+	&=\frac1T\sum_{t=p_{\max}+1}^N\widehat e_{t,p}^2,\\
+	\mathrm{AIC}(p)&=T\log\widehat\sigma_p^2+2(p+1),\\
+	\mathrm{BIC}(p)&=T\log\widehat\sigma_p^2+(p+1)\log T,
+\end{align}
+and choose the minimizing order.
+Here the residual variance uses divisor $T$, not $T-p-1$,
+because $\mathrm{RSS}_p/T$ is the Gaussian maximum-likelihood estimate of the error variance.
+These are based on the Gaussian conditional likelihood, treating the initial observations as given.
+
+\begin{example}
+	With $N=200$ and $p_{\max}=10$, we fit every candidate on dates $11,\ldots,200$,
+	so $T=190$ even for the intercept-only model.
+	An $\mathrm{AR}(2)$ then uses $Y_{10},Y_9$ as regressors for its first dependent observation $Y_{11}$.
+\end{example}
+
+\end{document}

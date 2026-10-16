@@ -1,0 +1,380 @@
+%!TEX program = xelatex 
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Notes: Generalized Least Squares}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\maketitle
+
+\noindent
+Heteroskedasticity and serial correlation need not make \gls{ols} inconsistent,
+but they can make it inefficient.
+Robust standard errors address inference without changing the coefficient estimates.
+The classical alternative is to model the error covariance and transform the regression
+so that its errors are homoskedastic and uncorrelated.
+This leads to \gls{gls}.
+
+\section{\glsentrylong{gls}}
+
+Write the linear model as
+\begin{align}
+    Y_i=X_i\T\beta+e_i,\qquad i=1,\ldots,n,
+    \qquad Y=X\beta+e,
+\end{align}
+where $X_i\in\reals^k$, $k<n$, $X$ has rows $X_i\T$, and $X$ has full column rank.
+An intercept, if included, counts as one of the $k$ coefficients.
+
+\begin{assumption}[Conditional Mean and Covariance]\label{ass-gls}
+    Conditional on the entire design matrix $X$,
+    \begin{align}
+        \E(e\given X)=0,\qquad
+        \var(e\given X)=\Omega,
+    \end{align}
+    where $\Omega$ is positive definite.
+    The covariance matrix $\Omega$ may be a function of $X$.
+\end{assumption}
+
+\begin{remark}
+	Under this assumption, \gls{ols} is still conditionally unbiased, but its covariance is
+	\begin{align}
+		\var(\widehat\beta_{\mathrm{OLS}}\given X)
+		=(X\T X)\inv X\T\Omega X(X\T X)\inv.
+	\end{align}
+	When $\Omega$ is not proportional to $I_n$, \gls{ols} need not be efficient.
+	\Gls{gls} can improve efficiency by accounting for the covariance structure.
+\end{remark}
+
+\begin{remark}[Mahalanobis Distance]
+	\Gls{ols} minimizes the squared Euclidean length of the residual vector,
+	$(Y-Xb)\T(Y-Xb)$.
+	If some observations are much noisier than others, or their errors move together,
+	this does not account for how informative each residual direction is.
+	The squared \emph{Mahalanobis distance} instead scales by the inverse covariance.
+\end{remark}
+
+\begin{definition}[\glsentrylong{gls}]
+    When $\Omega$ is known, the \gls{gls} estimator minimizes
+    \begin{align}\label{eq-gls-objective}
+        \widehat\beta_{\mathrm{GLS}}
+        =\arg\min_{b\in\reals^k}(Y-Xb)\T\Omega\inv(Y-Xb).
+    \end{align}
+    Its first-order condition and solution are
+    \begin{align}
+        X\T\Omega\inv(Y-X\widehat\beta_{\mathrm{GLS}})=0
+		\implies
+        \widehat\beta_{\mathrm{GLS}}
+        =(X\T\Omega\inv X)\inv X\T\Omega\inv Y.\label{eq-gls}
+    \end{align}
+\end{definition}
+
+\begin{remark}[\glsentryshort{gls} is \glsentryshort{ols} on Transformed Data]
+	Choose an invertible matrix $C$ such that $C\T C=\Omega\inv$.
+	Premultiplying the \emph{entire equation} by $C$ gives
+	\begin{align}
+		Y^*=X^*\beta+e^*,
+		\qquad Y^*=CY,\quad X^*=CX,\quad e^*=Ce.
+	\end{align}
+	The transformed errors satisfy
+	\begin{align}
+		\E(e^*\given X)=0,\qquad
+		\var(e^*\given X)= C\Omega C\T= I_n.
+	\end{align}
+	Applying \gls{ols} to the transformed regression yields
+	\begin{align}
+		\bigl((X^*)\T X^*\bigr)\inv (X^*)\T Y^*
+		=(X\T\Omega\inv X)\inv X\T\Omega\inv Y.
+	\end{align}
+	This transformation is called \emph{whitening}.
+	It removes error covariances and equalizes variances;
+	it does not generally make the errors independent.
+	Both the outcome and every regressor must be transformed, including any intercept.
+\end{remark}
+
+\begin{theorem}[Properties of \glsentryshort{gls}]\label{thm-gls}
+    Under \autoref{ass-gls} and full column rank,
+    \begin{align}
+        \E(\widehat\beta_{\mathrm{GLS}}\given X)&=\beta,\\
+        \var(\widehat\beta_{\mathrm{GLS}}\given X)
+        &=(X\T\Omega\inv X)\inv.
+    \end{align}
+    Moreover, \gls{gls} has the smallest conditional covariance matrix
+    among estimators linear in $Y$ and conditionally unbiased for every $\beta$.
+\end{theorem}
+\begin{proof}[Sketch of proof]
+    Substituting $Y=X\beta+e$ into \eqref{eq-gls} gives
+    \begin{align*}
+        \widehat\beta_{\mathrm{GLS}}-\beta
+        =(X\T\Omega\inv X)\inv X\T\Omega\inv e.
+    \end{align*}
+    Taking the conditional mean and covariance proves the two formulas.
+    The efficiency claim follows by applying the Gauss-Markov theorem to the whitened regression.
+\end{proof}
+
+\begin{remark}[What Assumptions Does Reweighting Require?]
+	For consistency, \gls{ols} can work with the unconditional moment restriction
+	$\E(X_ie_i)=0$ and a suitable law of large numbers.
+	Reweighting changes the moment condition.
+	For example, with positive weights $w(X_i)$, \gls{wls} solves
+	\begin{align}
+		\sum_{i=1}^n w(X_i)X_i(Y_i-X_i\T\widehat\beta_{\mathrm{WLS}})=0.
+	\end{align}
+	Its population target therefore depends on $\E[w(X_i)X_ie_i]$,
+	which need not vanish just because $\E(X_ie_i)=0$.
+	A sufficient condition is the conditional mean restriction:
+	\begin{align}
+		\E(e_i\given X_i)=0
+		\implies
+		\E[w(X_i)X_ie_i]
+		=\E\{w(X_i)X_i\E(e_i\given X_i)\}=0.
+	\end{align}
+	If weights depend on some other variable $Z_i$, it suffices to assume $\E(e_i\given X_i,Z_i)=0$.
+\end{remark}
+
+\begin{remark}[Stronger Than Which \glsentryshort{ols} Assumption?]
+    The conditional mean restriction is stronger than the unconditional orthogonality
+    sufficient for \gls{ols} consistency.
+    It is not stronger than the full-design conditional mean assumption already used
+    to prove finite-sample \gls{ols} unbiasedness.
+    Reweighting can change the population regression coefficient when the linear model
+    is only a best linear approximation rather than the conditional mean.
+\end{remark}
+
+\begin{remark}[Consistency]
+	More generally, consistency of \gls{gls} follows if
+	\begin{align}
+		\frac1n X\T\Omega\inv X\pto Q,\qquad
+		\frac1n X\T\Omega\inv e\pto0,
+	\end{align}
+	where $Q$ is positive definite.
+	The conditional mean assumption makes the weighted moments mean zero,
+	but laws of large numbers and appropriate moment conditions are still needed.
+\end{remark}
+
+\subsection{Feasible \glsentryshort{gls}}
+
+In practice, the error covariance is usually unknown.
+\Gls{fgls} replaces $\Omega$ with an estimate:
+\begin{align}\label{eq-fgls}
+    \widehat\beta_{\mathrm{FGLS}}
+    =(X\T\widehat\Omega\inv X)\inv X\T\widehat\Omega\inv Y.
+\end{align}
+An unrestricted $n\times n$ covariance matrix has too many entries to estimate
+from one regression sample.
+We therefore specify a structure, such as a variance function or an autoregressive error model.
+
+\begin{definition}[\gls{fgls} Procedure]
+	A typical \gls{fgls} procedure is
+	\begin{enumerate}
+		\item Obtain a consistent preliminary estimate of $\beta$, often by \gls{ols}.
+		\item Use its residuals to estimate the parameters of the covariance model.
+		\item Construct $\widehat\Omega$ and apply \eqref{eq-fgls}.
+	\end{enumerate}
+\end{definition}
+
+\begin{remark}
+	For a correctly specified, regular finite-dimensional covariance model,
+	consistent estimation of its parameters and suitable moment conditions can give
+	\begin{align}
+		\sqrt n\bigl(\widehat\beta_{\mathrm{FGLS}}-\widehat\beta_{\mathrm{GLS}}\bigr)\pto0.
+	\end{align}
+	Then \gls{fgls} has the same first-order asymptotic distribution as infeasible \gls{gls}.
+\end{remark}
+
+\begin{remark}[Efficiency versus Robustness]
+    Correctly modeling the covariance can improve efficiency.
+    If that model is wrong, the usual \gls{gls} variance formula need not be valid,
+    and the efficiency claim is lost.
+\end{remark}
+
+\section{Two Examples of \glsentryshort{gls}}
+
+\subsection{Heteroskedasticity and Weighted Least Squares}
+
+Suppose observations are independent, $\E(e_i\given X_i)=0$, and
+$\var(e_i\given X_i)=\sigma_i^2>0$.
+The covariance matrix is diagonal, so \gls{gls} becomes \gls{wls}:
+\begin{align}
+    \widehat\beta_{\mathrm{WLS}}
+    =\arg\min_b\sum_{i=1}^n\frac{(Y_i-X_i\T b)^2}{\sigma_i^2}
+    =\left(\sum_{i=1}^n\frac{X_iX_i\T}{\sigma_i^2}\right)\inv
+      \sum_{i=1}^n\frac{X_iY_i}{\sigma_i^2}.
+\end{align}
+Equivalently, divide the entire equation by the conditional standard deviation:
+\begin{align}
+    \frac{Y_i}{\sigma_i}
+    =\left(\frac{X_i}{\sigma_i}\right)\T\beta+\frac{e_i}{\sigma_i}.
+\end{align}
+The transformed error has conditional variance one.
+Thus the objective weight is the inverse \emph{variance},
+while the data are divided by the \emph{standard deviation}.
+Holding the regressors fixed, less noisy observations receive more weight.
+
+\begin{example}[Estimating a Common Mean]
+    Let $Y_1=\mu+e_1$ and $Y_2=\mu+e_2$ have independent mean-zero errors
+    with variances $1$ and $4$.
+    The simple average has variance $(1+4)/4=5/4$.
+    Inverse-variance weighting instead gives
+    \begin{align}
+        \widehat\mu_{\mathrm{WLS}}
+        =\frac{Y_1+Y_2/4}{1+1/4}
+        =\frac45Y_1+\frac15Y_2,
+        \qquad
+        \var(\widehat\mu_{\mathrm{WLS}})=\frac45.
+    \end{align}
+    The noisier observation still contributes, but receives less weight.
+\end{example}
+
+\begin{remark}[Estimating the Variance]
+	Suppose $\E(e_i\given X_i,Z_i)=0$ and model the conditional variance as
+	\begin{align}
+		\E(e_i^2\given X_i,Z_i)=\exp(Z_i\T\gamma),
+	\end{align}
+	where $Z_i$ contains observed variance predictors.
+	An intercept in $Z_i$ captures the overall scale, and the exponential ensures positive variances.
+	After a preliminary consistent regression, fit this variance function to the squared residuals:
+	\begin{align}
+		\widehat\gamma
+		=\arg\min_\gamma\frac1n\sum_{i=1}^n
+		\left\{\widehat e_i^2-\exp(Z_i\T\gamma)\right\}^2.
+	\end{align}
+	This is simply nonlinear least squares.
+	Then use $\widehat\sigma_i^2=\exp(Z_i\T\widehat\gamma)$ and weights
+	$\widehat w_i=1/\widehat\sigma_i^2$ in the weighted regression.
+	Consistency requires a correctly specified and identified variance function,
+	suitable fourth moments, and the usual regularity conditions.
+\end{remark}
+
+\subsection{AR(1) Errors and Quasi-Differencing}
+
+Consider the time series regression
+\begin{align}\label{eq-ar-errors}
+    Y_t=X_t\T\beta+e_t,\qquad
+    e_t=\rho e_{t-1}+v_t,\qquad |\rho|<1.
+\end{align}
+For a simple sufficient set of assumptions, let $\{v_t\}$ be \gls{iid}
+with mean zero and variance $\sigma_v^2>0$,
+independent of the entire regressor process.
+Use the stationary causal solution for $e_t$.
+Then
+\begin{align}
+    \Omega_{ts}=\cov(e_t,e_s\given X)
+    =\frac{\sigma_v^2}{1-\rho^2}\rho^{|t-s|}.
+\end{align}
+The errors are correlated across observations, so diagonal weights alone cannot whiten them.
+
+\begin{remark}[\glsentryshort{ols} Is Consistent but Generally Inefficient]
+    Also assume that $\{(X_t,e_t)\}$ is stationary and ergodic,
+    $\E\|X_t\|^2<\infty$, and $Q_{xx}=\E(X_tX_t\T)$ is positive definite.
+    Independence of the regressor and innovation processes implies $\E(X_te_t)=0$.
+    The law of large numbers then gives
+    \begin{align}
+        \widehat\beta_{\mathrm{OLS}}-\beta
+        &=\left(\frac1T\sum_{t=1}^T X_tX_t\T\right)\inv
+          \left(\frac1T\sum_{t=1}^T X_te_t\right)
+        \pto Q_{xx}\inv\E(X_te_t)=0.
+    \end{align}
+    Thus serial correlation in the errors does not itself make \gls{ols} inconsistent.
+    However, \gls{ols} does not generally use the covariance structure efficiently.
+    By \autoref{thm-gls}, \gls{gls} has a weakly smaller conditional covariance matrix.
+\end{remark}
+
+\subsubsection{Transforming the Regression}
+
+For known $\rho$, subtract $\rho$ times the equation at $t-1$ from the equation at $t$:
+\begin{align}\label{eq-quasidifference}
+    \underbrace{Y_t-\rho Y_{t-1}}_{Y_t^*}
+    =\underbrace{(X_t-\rho X_{t-1})\T}_{(X_t^*)\T}\beta+v_t,
+    \qquad t=2,\ldots,T.
+\end{align}
+This is \emph{quasi-differencing}.
+It removes the serial correlation in the errors, and \gls{ols} on the transformed equation
+implements \gls{gls} apart from the treatment of the first observation.
+For exact \gls{gls} with stationary errors, also use
+\begin{align}
+    Y_1^*=\sqrt{1-\rho^2}\,Y_1,\qquad
+    X_1^*=\sqrt{1-\rho^2}\,X_1.
+\end{align}
+Its error is $\sqrt{1-\rho^2}\,e_1$, which has variance $\sigma_v^2$
+and is uncorrelated with $v_2,\ldots,v_T$.
+The transformed error covariance is therefore $\sigma_v^2 I_T$.
+Dividing all transformed observations by $\sigma_v$ would give unit error variances,
+but this common rescaling does not change the coefficient estimate.
+If $\rho$ is fixed away from the unit-root boundary,
+dropping this first observation is asymptotically negligible under the usual regularity conditions.
+
+\begin{remark}[Transform the Intercept Too]
+    If $X_t$ contains a constant one, the corresponding transformed regressor is $1-\rho$
+    for $t\ge2$ and $\sqrt{1-\rho^2}$ for the first observation.
+    Transforming only $Y_t$, or leaving the original regressor columns unchanged,
+    does not implement \gls{gls}.
+\end{remark}
+
+\begin{remark}[Why Exogeneity Matters]
+	For consistency of the transformed regression, we need a law of large numbers,
+	a nonsingular limiting regressor second moment, and
+	\begin{align}\label{eq-transformed-moment}
+		\E\bigl[(X_t-\rho X_{t-1})v_t\bigr]=0.
+	\end{align}
+	Contemporaneous orthogonality $\E(X_te_t)=0$ alone does not imply this.
+	Expanding the transformed moment gives
+	\begin{align}
+		\E\bigl[(X_t-\rho X_{t-1})(e_t-\rho e_{t-1})\bigr]
+		={}&\E(X_te_t)-\rho\E(X_te_{t-1})\\
+		&-\rho\E(X_{t-1}e_t)+\rho^2\E(X_{t-1}e_{t-1}).
+	\end{align}
+	The cross-date terms need not vanish.
+	A sufficient condition is \emph{strict exogeneity},
+	$\E(e_t\given\{X_s\}_{s\in\mathbb Z})=0$ for every $t$.
+	Our independence assumption above implies this condition.
+	It ensures that the error remains mean zero conditional on the full transformed regressor history.
+\end{remark}
+
+\begin{remark}[Sufficient, Not Necessary]
+    Strict exogeneity is a convenient sufficient condition, not a necessary one.
+    Some dynamic models satisfy \eqref{eq-transformed-moment} without it.
+    In such cases, consistency must be checked directly using the transformed regressors and errors;
+    whitening the errors by itself is not a proof.
+\end{remark}
+
+\begin{remark}[\gls{fgls} for AR(1) Errors]
+	When the original regression admits a consistent \gls{ols} estimate, form its residuals
+	and estimate the error autocorrelation by
+	\begin{align}
+		\widehat\rho
+		=\frac{\sum_{t=2}^T\widehat e_t\widehat e_{t-1}}
+		{\sum_{t=2}^T\widehat e_{t-1}^2}.
+	\end{align}
+	Under stationarity, ergodicity, and suitable moments, $\widehat\rho\pto\rho$.
+	Replace $\rho$ with $\widehat\rho$ in the transformation and estimate $\beta$ by \gls{ols}.
+	For a stationary fit, constrain the covariance estimate to $|\widehat\rho|<1$.
+	Using all $T$ transformed observations, estimate the innovation variance by
+	\begin{align}
+		\widehat\sigma_v^2
+		=\frac{1}{T-k}\sum_{t=1}^T
+		\bigl(Y_t^*-(X_t^*)\T\widehat\beta_{\mathrm{FGLS}}\bigr)^2.
+	\end{align}
+	Under correct specification and the usual feasible-\gls{gls} conditions,
+	the model-based covariance estimator is
+	\begin{align}
+		\widehat\sigma_v^2
+		\left(\sum_{t=1}^T X_t^*(X_t^*)\T\right)\inv.
+	\end{align}
+	If the preliminary regression is inconsistent because of endogeneity,
+	its residuals do not generally yield a consistent estimate of $\rho$.
+	The procedure is therefore not a general cure for endogenous regressors.
+\end{remark}
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+\end{document}

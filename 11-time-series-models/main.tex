@@ -1,0 +1,633 @@
+%!TEX program = xelatex 
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Notes: Time Series Models}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\maketitle
+
+\section{\glsentrylong{ar} Models}\label{sec-ar}
+
+\begin{definition}[\gls{ar} Model]
+	An \gls{ar} model of order $p$, written $\mathrm{AR}(p)$, satisfies
+	\begin{align}\label{eq-ar}
+		Y_t=c+\alpha_1Y_{t-1}+\cdots+\alpha_pY_{t-p}+\epsilon_t,
+	\end{align}
+	where $\{\epsilon_t\}$ is white noise with variance $\sigma^2>0$; for an exact order $p\ge1$, assume $\alpha_p\neq0$.
+\end{definition}
+
+\begin{remark}[Causal in the Time Series Sense]
+	We focus on \emph{causal} solutions: $Y_t$ is a constant plus a mean-square convergent
+	linear combination of current and past shocks, not future shocks.
+	Think of this as ``no peeking into the future.''
+	It is a statement about the direction of time, not about identifying the effect of an economic intervention.
+	We maintain this convention throughout.
+	Explicitly, for a constant $\mu$ and coefficients $\psi_j$, mean-square convergence means
+	\begin{align*}
+		\E\left[\left(Y_t-\mu-\sum_{j=0}^{m}\psi_j\epsilon_{t-j}\right)^2\right]\to0
+		\quad\text{as}\quad
+		m\to\infty.
+	\end{align*}
+	Thus the expected squared error from truncating the infinite sum vanishes.
+\end{remark}
+
+\begin{remark}[Initialization]
+	We can start the recursion at a finite date with fixed initial values,
+	or construct a solution using shocks from the infinite past.
+	Under the stability conditions below, the latter gives a covariance-stationary process,
+	whereas fixed initial values generally create a transient period.
+\end{remark}
+
+\begin{remark}[The Mean]
+	Suppose that the mean exists and is constant over time,
+	then $\E Y_t=\E Y_{t-j}=\mu$ and $\E\epsilon_t=0$ give
+	\begin{align}
+		\mu=c+\sum_{j=1}^p\alpha_j\mu
+		\quad\Longrightarrow\quad
+		\left(1-\sum_{j=1}^p\alpha_j\right)\mu=c.
+	\end{align}
+	Hence $\mu=c/(1-\sum_{j=1}^p\alpha_j)$ when the denominator is nonzero.
+	Thus the intercept $c$ is generally not the mean.
+	Subtracting the mean gives the centered equation
+	\begin{align}
+		Y_t-\mu=\alpha_1(Y_{t-1}-\mu)+\cdots+\alpha_p(Y_{t-p}-\mu)+\epsilon_t.
+	\end{align}
+\end{remark}
+
+\subsection{The AR(1) Model}
+
+From now on, we use $Y_t$ for the mean-zero process, with any constant mean subtracted.
+Consider $Y_t=\alpha Y_{t-1}+\epsilon_t$ with $|\alpha|<1$.
+Repeated substitution gives
+\begin{align}
+	Y_t=\sum_{j=0}^{m}\alpha^j\epsilon_{t-j}+\alpha^{m+1}Y_{t-m-1}.
+\end{align}
+For a stationary solution, the remainder has second moment
+$\alpha^{2(m+1)}\var(Y_t)\to0$.
+Thus any such solution must have the representation
+\begin{align}\label{eq-ar1-linear}
+	Y_t=\sum_{j=0}^{\infty}\alpha^j\epsilon_{t-j}.
+\end{align}
+% To check that this solution exists, use the white-noise property: for $n>m$,
+% \begin{align*}
+% 	\E\left[\left(\sum_{j=m+1}^{n}\alpha^j\epsilon_{t-j}\right)^2\right]
+% 	=\sigma^2\sum_{j=m+1}^{n}\alpha^{2j}
+% 	\le\frac{\sigma^2\alpha^{2(m+1)}}{1-\alpha^2}\to0.
+% \end{align*}
+% Hence the partial sums converge in mean square.
+% The limit has mean zero, and its autocovariances depend only on the lag,
+% because the shock covariances and the weights do not depend on the date.
+% It is therefore covariance stationary; shifting the series by one date verifies
+% $Y_t=\alpha Y_{t-1}+\epsilon_t$.
+% Past observations depend only on past shocks, so $\epsilon_t$ is orthogonal to them.
+% Thus $\alpha Y_{t-1}$ is the best linear predictor of $Y_t$ from past observations,
+% and $\epsilon_t$ is the one-step linear prediction error, or \emph{innovation}.
+% The coefficient $\alpha^j$ describes the response at date $t+j$ to a one-unit shock at date $t$.
+
+\begin{proposition}[Autocovariances of $\mathrm{AR}(1)$]
+	For the stationary $\mathrm{AR}(1)$ with $|\alpha|<1$,
+	\begin{align}
+		\gamma(0)=\frac{\sigma^2}{1-\alpha^2},\qquad
+		\gamma(k)=\frac{\sigma^2\alpha^{|k|}}{1-\alpha^2},\qquad
+		\rho(k)=\alpha^{|k|}.
+	\end{align}
+\end{proposition}
+\begin{proof}
+	Since $Y_{t-1}$ is a linear combination of past shocks,
+	$\cov(Y_{t-1},\epsilon_t)=0$.
+	Taking variances in the model equation gives
+	\begin{align*}
+		\gamma(0)
+		&=\var(\alpha Y_{t-1}+\epsilon_t)\\
+		&=\alpha^2\var(Y_{t-1})+\var(\epsilon_t)
+		+2\alpha\cov(Y_{t-1},\epsilon_t)\\
+		&=\alpha^2\gamma(0)+\sigma^2.
+	\end{align*}
+	Rearranging gives $\gamma(0)=\sigma^2/(1-\alpha^2)$.
+	For $k\ge1$, taking covariance with $Y_{t-k}$ gives $\gamma(k)=\alpha\gamma(k-1)$.
+	Iterate this recursion and use symmetry for negative lags.
+\end{proof}
+
+\begin{remark}[Decay Rather Than a Cutoff]
+	For $0<\alpha<1$, the \gls{acf} decays geometrically and remains positive.
+	For $-1<\alpha<0$, it alternates in sign while decaying in magnitude.
+	Unless $\alpha=0$, it never becomes exactly zero.
+\end{remark}
+
+\begin{remark}[Initialization Matters]
+	The stationary solution uses shocks from the infinite past.
+	If instead $Y_0=0$ and we start the recursion at date one, then
+	$\var(Y_t)=\sigma^2(1-\alpha^{2t})/(1-\alpha^2)$.
+	For $\alpha\neq0$, this process is not exactly stationary, although the effect of initialization vanishes as $t$ grows.
+\end{remark}
+
+\subsection{The General AR(p) Model}
+
+\begin{definition}[Lag Operator]
+	The lag operator $L$ shifts a process back one date:
+	$LY_t=Y_{t-1}$ and $L^jY_t=Y_{t-j}$.
+	For a polynomial $a(z)=a_0+a_1z+\cdots+a_mz^m$,
+	\begin{align}
+		a(L)Y_t=a_0Y_t+a_1Y_{t-1}+\cdots+a_mY_{t-m}.
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	This notation lets us manipulate lagged sums as polynomials.
+	For example, $(1-aL)(1-bL)Y_t=Y_t-(a+b)Y_{t-1}+abY_{t-2}$.
+	If $a(0)\neq0$, its reciprocal has a power series around zero:
+	\begin{align}
+		\frac1{a(z)}=\sum_{j=0}^{\infty}b_jz^j,
+		\qquad a(z)\sum_{j=0}^{\infty}b_jz^j=1.
+	\end{align}
+	Matching powers of $z$ determines the coefficients $b_j$.
+	If all roots of $a(z)=0$ lie outside the unit circle, these coefficients are absolutely summable.
+	% and for a covariance-stationary process we define
+	% \begin{align*}
+	% 	a(L)\inv Y_t=\sum_{j=0}^{\infty}b_jY_{t-j},
+	% \end{align*}
+	% with convergence in mean square.
+	% For example, when $|\alpha|<1$,
+	% $(1-\alpha L)\inv Y_t=\sum_{j=0}^{\infty}\alpha^jY_{t-j}$.
+\end{remark}
+
+\begin{remark}[Rewriting \gls{ar} models]
+	Define the polynomial $\alpha(z)=1-\alpha_1z-\cdots-\alpha_pz^p$.
+	Using the lag operator, the centered $\mathrm{AR}(p)$ model is simply
+	\begin{align}
+		\alpha(L)Y_t=\epsilon_t.
+	\end{align}
+\end{remark}
+
+\begin{theorem}[A Stationary Solution]\label{thm-ar-stationary}
+	If every root of $\alpha(z)=0$ lies outside the unit circle,
+	then the $\mathrm{AR}(p)$ equation has a unique covariance-stationary solution
+	\begin{align}\label{eq-ar-linear}
+		Y_t=\alpha(L)\inv\epsilon_t
+		=\sum_{j=0}^{\infty}\psi_j\epsilon_{t-j},\qquad
+		\sum_{j=0}^{\infty}|\psi_j|<\infty.
+	\end{align}
+	The coefficients satisfy $\psi_0=1$ and
+	\begin{align}\label{eq-psi-recursion}
+		\psi_j=\sum_{\ell=1}^{\min(p,j)}\alpha_\ell\psi_{j-\ell},\qquad j\ge1.
+	\end{align}
+\end{theorem}
+\begin{proof}[Proof sketch]
+	The root condition ensures that $1/\alpha(z)$ has a power series whose coefficients decay geometrically.
+	Thus the corresponding shock series converges in mean square.
+	Multiplying $\alpha(z)\sum_{j\ge0}\psi_jz^j=1$ and matching coefficients gives \eqref{eq-psi-recursion}
+	and verifies the model equation; it also determines the coefficients uniquely.
+	Finally, $\epsilon_t$ is orthogonal to past observations, and
+	$\sum_{\ell=1}^p\alpha_\ell Y_{t-\ell}$ is the linear predictor of $Y_t$.
+\end{proof}
+
+\begin{remark}
+	For $\mathrm{AR}(1)$, $\psi_j$ is simply $\alpha^j$ for all $j$.
+\end{remark}
+
+\begin{remark}[Which Roots?]
+	The roots are those of $1-\alpha_1z-\cdots-\alpha_pz^p$, not the coefficients $\alpha_j$.
+	For an $\mathrm{AR}(1)$ with $\alpha\neq0$, the root is $1/\alpha$ since the polynomial is $1-\alpha z$,
+	so the condition reduces to $|\alpha|<1$.
+	For $p>1$, checking $|\alpha_j|<1$ separately is not sufficient.
+\end{remark}
+
+\begin{remark}[From Shock Coefficients to Autocovariances]
+	The coefficients $\psi_j$ describe the contribution of each past shock to $Y_t$.
+	To calculate $\gamma(k)$, match the shocks shared by $Y_t$ and $Y_{t-k}$.
+	Since different shocks are uncorrelated,
+	\begin{align*}
+		\gamma(k)=\cov(Y_t,Y_{t-k})
+		=\sigma^2\sum_{j=0}^{\infty}\psi_j\psi_{j+k},\qquad k\ge0.
+	\end{align*}
+	In particular, $\gamma(0)=\sigma^2\sum_{j=0}^{\infty}\psi_j^2$.
+	Absolute summability of the $\psi_j$ also implies absolute summability of the autocovariances.
+	Thus the root condition also guarantees a finite long-run variance.
+	Since $\sum_{j=0}^{\infty}\psi_j=1/\alpha(1)$, it is
+	\begin{align*}
+		\Omega=\sum_{k=-\infty}^{\infty}\gamma(k)
+		=\sigma^2\left(\sum_{j=0}^{\infty}\psi_j\right)^2
+		=\frac{\sigma^2}{\left(1-\sum_{\ell=1}^{p}\alpha_\ell\right)^2}.
+	\end{align*}
+\end{remark}
+
+% Skip this subsection
+% \subsection{Calculating the Autocovariances}
+%
+% The lag-operator expansion gives one route to the autocovariances.
+% For any absolutely summable linear representation with white-noise shocks,
+% matching the common shocks gives
+% \begin{align}\label{eq-linear-cov}
+% 	\gamma(k)=\sigma^2\sum_{j=0}^{\infty}\psi_j\psi_{j+k},\qquad k\ge0.
+% \end{align}
+% Thus we can first expand $1/\alpha(z)$ and then calculate $\gamma(k)$.
+%
+% Alternatively, take covariances directly in the centered $\mathrm{AR}(p)$ equation.
+% Since $\epsilon_t$ is orthogonal to $Y_{t-k}$ for $k\ge1$,
+% \begin{align}\label{eq-yule-walker}
+% 	\gamma(k)&=\sum_{j=1}^p\alpha_j\gamma(k-j),\qquad k\ge1,\\
+% 	\gamma(0)&=\sum_{j=1}^p\alpha_j\gamma(j)+\sigma^2.
+% \end{align}
+% These are the \emph{Yule-Walker equations}.
+% Use $\gamma(-k)=\gamma(k)$: the equations for $k=0,\ldots,p$ determine
+% $\gamma(0),\ldots,\gamma(p)$, and the recursion gives the remaining lags.
+% Dividing by $\gamma(0)$ gives the same recursion for the \gls{acf} at positive lags.
+%
+% \begin{example}[$\mathrm{AR}(2)$]
+% 	Consider $Y_t=\tfrac34Y_{t-1}-\tfrac18Y_{t-2}+\epsilon_t$.
+% 	The lag polynomial factors as
+% 	\begin{align}
+% 		\alpha(z)=1-\tfrac34z+\tfrac18z^2=(1-\tfrac12z)(1-\tfrac14z).
+% 	\end{align}
+% 	Its roots are $2$ and $4$, so the stationary solution exists.
+% 	Partial fractions give
+% 	\begin{align}
+% 		\frac1{\alpha(z)}=\frac2{1-z/2}-\frac1{1-z/4},\qquad
+% 		\psi_j=2(1/2)^j-(1/4)^j.
+% 	\end{align}
+% 	The Yule-Walker equations give
+% 	\begin{align}
+% 		\rho(1)&=\tfrac34-\tfrac18\rho(1)\quad\Longrightarrow\quad\rho(1)=\tfrac23,\\
+% 		\rho(2)&=\tfrac34\rho(1)-\tfrac18=\tfrac38,\\
+% 		\gamma(0)&=\frac{\sigma^2}{1-\tfrac34\rho(1)+\tfrac18\rho(2)}=\frac{64}{35}\sigma^2.
+% 	\end{align}
+% 	For $k\ge2$, $\rho(k)=\tfrac34\rho(k-1)-\tfrac18\rho(k-2)$.
+% \end{example}
+
+\subsection{Adding Explanatory Variables: ADL Models}\label{sec-adl}
+
+An AR model uses only the history of $Y_t$.
+We can also include current and past values of another observed variable $Z_t$.
+We take $Z_t$ to have mean zero as well.
+
+\begin{definition}[\gls{adl} Model]
+	For a scalar explanatory variable $Z_t$, an $\mathrm{ADL}(p,q)$ model is
+	\begin{align}\label{eq-adl}
+		Y_t=\sum_{j=1}^p\alpha_jY_{t-j}
+		+\sum_{j=0}^q\beta_jZ_{t-j}+\epsilon_t.
+	\end{align}
+	The model combines $p$ lags of $Y_t$ with $Z_t$ and its first $q$ lags.
+	Setting all $\beta_j=0$ gives AR; setting all $\alpha_j=0$ gives a distributed-lag model.
+\end{definition}
+
+\begin{remark}
+	To interpret the right-hand side without $\epsilon_t$ as a conditional mean, a sufficient condition is
+	\begin{align}\label{eq-adl-mean}
+		\E(\epsilon_t\given Y_{t-1},Y_{t-2},\ldots,Z_t,Z_{t-1},\ldots)=0.
+	\end{align}
+	White noise alone does not ensure this condition: it restricts correlations across errors,
+	not their relationship with $Z_t$.
+\end{remark}
+
+\begin{example}[Short-Run and Long-Run Responses]
+	Consider an $\mathrm{ADL}(1,1)$:
+	\begin{align}
+		Y_t=\alpha Y_{t-1}+\beta_0Z_t+\beta_1Z_{t-1}+\epsilon_t,
+		\qquad |\alpha|<1.
+	\end{align}
+	Compare two paths with the same initial values and errors, but with $Z_t$ one unit higher
+	from date $t$ onward on one path.
+	The difference in $Y_t$ is initially $\beta_0$, the \emph{impact multiplier}.
+	At the next date it is $\alpha\beta_0+\beta_0+\beta_1$.
+	As the adjustment continues, the difference converges to $d$ satisfying
+	\begin{align}
+		d=\alpha d+\beta_0+\beta_1
+		\quad\Longrightarrow\quad d=\frac{\beta_0+\beta_1}{1-\alpha},
+	\end{align}
+	the \emph{long-run multiplier}.
+	These are responses implied by the equation with the errors held fixed.
+\end{example}
+
+\begin{remark}
+	More generally, under the AR stability condition, the long-run multiplier is
+	$\sum_{j=0}^q\beta_j/(1-\sum_{j=1}^p\alpha_j)$.
+	Stationarity also depends on the explanatory variable: stable AR dynamics alone do not guarantee stationarity of $Y_t$
+	if $Z_t$ has a changing variance.
+\end{remark}
+
+\section{\glsentrylong{ma} Models}\label{sec-ma}
+
+\begin{definition}[\gls{ma} Model]
+	A \gls{ma} model of order $q$, written $\mathrm{MA}(q)$, is
+	\begin{align}
+		Y_t=\epsilon_t+\theta_1\epsilon_{t-1}+\cdots+\theta_q\epsilon_{t-q},
+	\end{align}
+	where $\{\epsilon_t\}$ is white noise.
+	Write $\theta_0=1$ and, for an exact order $q\ge1$, assume $\theta_q\neq0$.
+\end{definition}
+
+\begin{remark}
+	The name refers to a weighted sum of shocks, not an average of past observations.
+	The weights need not be positive or sum to one.
+	A shock affects the current observation and at most the next $q$ observations.
+\end{remark}
+
+\begin{proposition}[Autocovariances of an \gls{ma} Model]\label{prop-ma-cov}
+	Every $\mathrm{MA}(q)$ process is covariance stationary, with mean zero and
+	\begin{align}
+		\gamma(k)=
+		\begin{cases}
+			\sigma^2\displaystyle\sum_{j=0}^{q-k}\theta_j\theta_{j+k}, & 0\le k\le q,\\
+			0, & k>q,
+		\end{cases}
+		\qquad \gamma(-k)=\gamma(k).
+	\end{align}
+	In particular, $\gamma(0)=\sigma^2\sum_{j=0}^q\theta_j^2$ and $\rho(k)=\gamma(k)/\gamma(0)$.
+\end{proposition}
+\begin{proof}
+	The mean is zero because each shock has mean zero.
+	In the covariance of $Y_t$ and $Y_{t-k}$, only terms involving the same shock survive.
+	For $k\ge0$, matching $\epsilon_{t-j}$ with $\epsilon_{t-k-\ell}$ requires $j=k+\ell$.
+	Thus the covariance is $\sigma^2\sum_{\ell=0}^{q-k}\theta_{k+\ell}\theta_\ell$
+	when $k\le q$, and zero otherwise.
+\end{proof}
+
+\begin{example}[$\mathrm{MA}(1)$]\label{ex-ma1}
+	For $Y_t=\epsilon_t+\theta\epsilon_{t-1}$,
+	\begin{align}
+		\gamma(0)=\sigma^2(1+\theta^2),\qquad
+		\gamma(1)=\sigma^2\theta,\qquad
+		\gamma(k)=0\quad(k\ge2).
+	\end{align}
+	Hence $\rho(1)=\theta/(1+\theta^2)$ and $\rho(k)=0$ for $k\ge2$.
+	In particular, $|\rho(1)|\le1/2$.
+\end{example}
+
+\begin{remark}[A Cutoff in the \gls{acf}]
+	The population \gls{acf} of an $\mathrm{MA}(q)$ process is exactly zero beyond lag $q$.
+	In real life, a sample \gls{acf} will generally not be exactly zero beyond $q$.
+\end{remark}
+
+\begin{remark}[Rewriting \gls{ma} models]
+	With $\theta(z)=1+\theta_1z+\cdots+\theta_qz^q$, the lag-operator form is
+	\begin{align}
+		Y_t=\theta(L)\epsilon_t.
+	\end{align}
+\end{remark}
+
+\begin{remark}[Recovering the Shocks]
+	The shocks are unobserved, so it is useful to ask whether they can be recovered from current and past observations.
+	A standard sufficient condition is that all roots of $\theta(z)=0$ lie outside the unit circle,
+	i.e., have modulus greater than one.
+	Then the model is \emph{invertible}:
+	\begin{align}
+		\epsilon_t=\theta(L)\inv Y_t
+		=\sum_{j=0}^{\infty}\pi_jY_{t-j},\qquad
+		\sum_{j=0}^{\infty}|\pi_j|<\infty.
+	\end{align}
+	The past-shock part of $Y_t$ is therefore recoverable from past observations,
+	while $\epsilon_t$ is orthogonal to them. It is the one-step linear prediction error.
+\end{remark}
+
+\begin{example}[Inverting an $\mathrm{MA}(1)$]
+	If $|\theta|<1$, the geometric series gives
+	\begin{align}
+		\epsilon_t=(1+\theta L)\inv Y_t
+		=\sum_{j=0}^{\infty}(-\theta)^jY_{t-j}.
+	\end{align}
+	The condition $|\theta|<1$ is for this stable inversion, not for covariance stationarity:
+	an $\mathrm{MA}(1)$ is covariance stationary for every finite $\theta$.
+\end{example}
+
+\begin{remark}[Comparing the Models]
+	An $\mathrm{MA}(q)$ has a finite shock representation and an \gls{acf} that cuts off after $q$ lags.
+	A stationary $\mathrm{AR}(p)$ generally has an infinite shock representation
+	and an \gls{acf} that decays rather than cutting off.
+	The decay can oscillate; it need not be monotone.
+	\autoref{fig-model-acf} illustrates these patterns.
+	Sampling noise prevents an exact visual identification from a sample correlogram.
+\end{remark}
+
+\begin{figure}[t]
+	\centering
+	\begin{tikzpicture}[x=.30cm,y=1.35cm]
+		\foreach \offset/\heading/\kind in {0/{MA(1): $\theta=.8$}/0,13/{AR(1): $\alpha=.8$}/1,26/{AR(1): $\alpha=-.8$}/2}{
+			\begin{scope}[shift={(\offset,0)}]
+				\node[font=\small] at (4,1.65) {\heading};
+				\draw[->] (-.5,0)--(9,0) node[right,font=\scriptsize] {$k$};
+				\draw[->] (0,-1.05)--(0,1.12) node[above left,font=\scriptsize] {$\rho(k)$};
+				\foreach \v in {-1,1}{
+					\draw (-.15,\v)--(.15,\v);
+					\node[left,font=\scriptsize] at (-.15,\v) {$\v$};
+				}
+				\foreach \k in {0,...,8}{
+					\ifnum\kind=0
+						\pgfmathsetmacro{\value}{(\k==0) ? 1 : ((\k==1) ? .8/1.64 : 0)}
+					\else
+						\ifnum\kind=1
+							\pgfmathsetmacro{\value}{pow(.8,\k)}
+						\else
+							\pgfmathsetmacro{\value}{pow(-.8,\k)}
+						\fi
+					\fi
+					\draw[myblue] (\k,0)--(\k,\value);
+					\fill[myblue] (\k,\value) circle (1pt);
+				}
+				\foreach \k in {0,2,4,6,8}{
+					\node[below,font=\scriptsize] at (\k,-.02) {$\k$};
+				}
+			\end{scope}
+		}
+	\end{tikzpicture}
+	\caption{\gls{acf} Plots.}
+	\label{fig-model-acf}
+\end{figure}
+
+\section{\glsentrylong{arma} Models}\label{sec-arma}
+
+AR models use past observations, while MA models use past shocks.
+Combining the two gives an \gls{arma} model, which can describe dependence
+with fewer coefficients than a high-order AR or MA model.
+
+\begin{definition}[\gls{arma} Model]
+	An $\mathrm{ARMA}(p,q)$ model satisfies
+	\begin{align}\label{eq-arma}
+		Y_t=\sum_{j=1}^p\alpha_jY_{t-j}
+		+\left(\epsilon_t+\sum_{j=1}^q\theta_j\epsilon_{t-j}\right),
+	\end{align}
+	where $\{\epsilon_t\}$ is white noise.
+	With $\alpha(z)=1-\sum_{j=1}^p\alpha_jz^j$ and
+	$\theta(z)=1+\sum_{j=1}^q\theta_jz^j$, its centered form is
+	\begin{align}
+		\alpha(L)Y_t=\theta(L)\epsilon_t.
+	\end{align}
+	An $\mathrm{AR}(p)$ is an $\mathrm{ARMA}(p,0)$, and
+	an $\mathrm{MA}(q)$ is an $\mathrm{ARMA}(0,q)$.
+\end{definition}
+
+\begingroup
+\tcbset{lines before break=4}
+\begin{proposition}[Stationarity and Invertibility]
+	If all roots of $\alpha(z)=0$ lie outside the unit circle, there is a unique
+	covariance-stationary solution with
+	\begin{align}\label{eq-arma-linear}
+		Y_t=\frac{\theta(L)}{\alpha(L)}\epsilon_t
+		=\sum_{j=0}^{\infty}\psi_j\epsilon_{t-j},\qquad
+		\sum_{j=0}^{\infty}|\psi_j|<\infty.
+	\end{align}
+	If all roots of $\theta(z)=0$ also lie outside the unit circle, the model is invertible:
+	\begin{align}
+		\epsilon_t=\frac{\alpha(L)}{\theta(L)}Y_t
+		=\sum_{j=0}^{\infty}\pi_jY_{t-j},\qquad
+		\sum_{j=0}^{\infty}|\pi_j|<\infty.
+	\end{align}
+\end{proposition}
+\endgroup
+\begin{proof}[Proof sketch]
+	Expand $1/\alpha(z)$ as in the \gls{ar} case and multiply by the finite polynomial $\theta(z)$.
+	The resulting coefficients are absolutely summable and satisfy the model equation.
+	The same argument applied to $1/\theta(z)$ gives the inverse representation.
+\end{proof}
+
+\begin{remark}
+	The two root conditions answer different questions:
+	the \gls{ar} condition gives a stationary representation using current and past shocks;
+	the \gls{ma} condition lets us recover those shocks from current and past observations.
+	Under both conditions, $\epsilon_t$ is the one-step linear prediction error.
+\end{remark}
+
+% To calculate the shock coefficients, match powers of $z$ in
+% $\alpha(z)\sum_{j\ge0}\psi_jz^j=\theta(z)$:
+% \begin{align}
+% 	\psi_0=1,\qquad
+% 	\psi_j=\theta_j+\sum_{\ell=1}^{\min(p,j)}\alpha_\ell\psi_{j-\ell},
+% 	\qquad j\ge1,
+% \end{align}
+% where $\theta_j=0$ for $j>q$.
+% Then \eqref{eq-linear-cov} gives the autocovariances.
+% Alternatively, for $k>q$, taking covariances in \eqref{eq-arma} gives
+% \begin{align}
+% 	\gamma(k)=\sum_{j=1}^p\alpha_j\gamma(k-j).
+% \end{align}
+% Thus the autocovariances satisfy an AR recursion after the initial lags affected by the MA part.
+
+\begin{example}[$\mathrm{ARMA}(1,1)$]
+	Consider the centered model
+	\begin{align}
+		Y_t=\alpha Y_{t-1}+\epsilon_t+\theta\epsilon_{t-1},\qquad |\alpha|<1.
+	\end{align}
+	Expanding the lag polynomials gives
+	\begin{align}
+		\frac{1+\theta z}{1-\alpha z}
+		=1+(\alpha+\theta)\sum_{j=1}^{\infty}\alpha^{j-1}z^j.
+	\end{align}
+	Hence $\psi_0=1$ and $\psi_j=(\alpha+\theta)\alpha^{j-1}$ for $j\ge1$.
+	Matching common shocks gives $\gamma(k)=\sigma^2\sum_{j=0}^{\infty}\psi_j\psi_{j+k}$ for $k\ge0$, so
+	\begin{align}
+		\gamma(0)&=\sigma^2\frac{1+\theta^2+2\alpha\theta}{1-\alpha^2},\\
+		\gamma(k)&=\sigma^2\frac{(\alpha+\theta)(1+\alpha\theta)}{1-\alpha^2}
+		\alpha^{k-1},\qquad k\ge1.
+	\end{align}
+	Consequently,
+	\begin{align}
+		\rho(1)=\frac{(\alpha+\theta)(1+\alpha\theta)}{1+\theta^2+2\alpha\theta},
+		\qquad \rho(k)=\alpha^{k-1}\rho(1),\quad k\ge1.
+	\end{align}
+	The \gls{ma} parameter changes the first-lag correlation, while the \gls{ar} parameter governs the subsequent decay.
+	Invertibility additionally requires $|\theta|<1$.
+\end{example}
+
+\begin{remark}[Common Factors and Model Order]
+	If $\alpha(z)$ and $\theta(z)$ share a factor, the transfer function
+	$\theta(z)/\alpha(z)$ simplifies to a lower-order model.
+	For example, in the preceding model, $\theta=-\alpha$ gives $Y_t=\epsilon_t$:
+	the AR and MA terms cancel.
+	To describe an exact order $(p,q)$ without redundant parameters,
+	we use polynomials of degrees $p$ and $q$ with no common factors.
+\end{remark}
+
+\begin{remark}
+	The coefficients $\psi_j$ describe how a shock propagates over time and are called
+	\emph{impulse responses}.
+	Under the preceding root conditions, these shocks are innovations: one-step linear prediction errors.
+	Is this representation special to ARMA models, or does it reflect a more general property of stationary processes?
+\end{remark}
+
+\section{The Wold Representation}\label{sec-wold}
+
+So far, we have specified a model and derived its representation in terms of shocks.
+Wold's theorem reverses the perspective: start with a covariance-stationary process
+and construct its shocks as linear prediction errors.
+Apart from a perfectly predictable component, the process is a weighted sum of current and past innovations.
+Thus finite-order AR, MA, and ARMA models are tractable special cases of a broader representation.
+
+Let $\{Y_t\}$ be covariance stationary with mean zero.
+We can separate $Y_t$ into its best linear prediction from the past and a prediction error,
+just as in a population regression.
+Let $\mathcal H_{t-1}$ be the space spanned by $1,Y_{t-1},Y_{t-2},\ldots$,
+including mean-square limits of linear combinations, and let $P_{t-1}$ denote projection onto this space.
+Then
+\begin{align}
+	Y_t=P_{t-1}Y_t+\epsilon_t,\qquad
+	\E(\epsilon_t Z)=0\quad\text{for every }Z\in\mathcal H_{t-1}.
+\end{align}
+Thus $\epsilon_t$ is the part of $Y_t$ orthogonal to its linear past, called the \emph{innovation}.
+Since $1\in\mathcal H_{t-1}$, it has mean zero.
+For $s<t$, $\epsilon_s\in\mathcal H_{t-1}$, so $\E(\epsilon_t\epsilon_s)=0$.
+Covariance stationarity also makes its variance constant: $\E\epsilon_t^2=\sigma^2$.
+Hence the innovations form white noise.
+
+Now repeat the projection one date further into the past.
+The new direction added to $\mathcal H_{t-2}$ by $Y_{t-1}$ is precisely $\epsilon_{t-1}$.
+Consequently, when $\sigma^2>0$,
+\begin{align}
+	P_{t-1}Y_t=P_{t-2}Y_t+\psi_1\epsilon_{t-1},\qquad
+	\psi_1=\frac{\cov(Y_t,\epsilon_{t-1})}{\sigma^2}.
+\end{align}
+Continuing gives, for any $m\ge0$,
+\begin{align}
+	Y_t=P_{t-m-1}Y_t+\sum_{j=0}^{m}\psi_j\epsilon_{t-j},\qquad
+	\psi_j=\frac{\cov(Y_t,\epsilon_{t-j})}{\sigma^2},\quad \psi_0=1.
+\end{align}
+These coefficients depend on the lag, not the date.
+The terms are orthogonal, so
+$\sigma^2\sum_{j=0}^{m}\psi_j^2\le\var(Y_t)$.
+Thus the coefficients are square summable, and the innovation sum converges in mean square.
+The remaining projection converges to a component $\mu_t$ predictable from the arbitrarily distant past.
+This gives the Wold decomposition.
+
+\begin{theorem}[Wold Representation]\label{thm-wold}
+	A covariance-stationary process with positive innovation variance admits the representation
+	\begin{align}
+		Y_t=\mu_t+\sum_{j=0}^{\infty}\psi_j\epsilon_{t-j},\qquad
+		\psi_0=1,\qquad \sum_{j=0}^{\infty}\psi_j^2<\infty.
+	\end{align}
+	Here $\epsilon_t=Y_t-P_{t-1}Y_t$ is the innovation and forms white noise,
+	and $\mu_t$ is perfectly linearly predictable
+	from the arbitrarily distant past and uncorrelated with every $\epsilon_s$.
+	The series converges in mean square.
+\end{theorem}
+
+\begin{remark}
+	Here $\E\mu_t=0$, but $\mu_t$ need not be a constant or a nonrandom trend.
+	It is \emph{deterministic} only in the prediction sense.
+	If $\mu_t=0$, the process is \emph{purely nondeterministic}.
+	The sequence $\{\psi_j\}$ is the \emph{impulse response function}:
+	a one-unit innovation at date $t$ contributes $\psi_j$ units to $Y_{t+j}$,
+	holding the other innovations and the predictable component fixed.
+\end{remark}
+
+\begin{remark}[Connection with the Models]
+	For a stationary AR model, the shocks are already one-step linear prediction errors,
+	so the expansion in \eqref{eq-ar-linear} is its Wold representation.
+	For MA and ARMA models, invertibility lets us recover past shocks from past observations
+	and identify the shocks with the innovations.
+	These models then have $\mu_t=0$.
+	Wold's theorem does not imply a finite-order ARMA model:
+	in general, the square-summable sequence $\{\psi_j\}$ need not come from a ratio of finite polynomials.
+\end{remark}
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+\end{document}

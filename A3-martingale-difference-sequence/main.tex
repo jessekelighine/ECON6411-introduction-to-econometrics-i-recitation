@@ -1,0 +1,198 @@
+%!TEX program = xelatex
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Notes: \glsentrylong{mds}}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\appendix
+\section{\glsentrylong{mds}}
+
+Time series observations need not be independent for their averages to satisfy a central limit theorem.
+A useful alternative is that each new observation has conditional mean zero given the past.
+This condition will be especially useful for the products of regressors and errors that appear in estimation.
+
+\subsection{Unpredictable in Mean}
+
+Let $\mathcal F_t$ denote the information available through date $t$.
+Information accumulates over time: $\mathcal F_{t-1}\subseteq\mathcal F_t$.
+For example, $\mathcal F_t$ may contain all observations and shocks up to date $t$.
+
+\begin{definition}[\gls{mds}]
+	A sequence $\{g_t\}$, with $g_t\in\reals^k$, is an \gls{mds} relative to $\{\mathcal F_t\}$ if
+	$g_t$ is known at date $t$, $\E\|g_t\|<\infty$, and
+	\begin{align}\label{eq-mds}
+		\E(g_t\given\mathcal F_{t-1})=0.
+	\end{align}
+\end{definition}
+
+\begin{remark}[Interpretation]
+	Even using all the information in $\mathcal F_{t-1}$,
+	the best mean prediction of $g_t$ is zero.
+\end{remark}
+
+\begin{remark}[Past Information]
+	The information set matters:
+	a condition given the history of $g_t$ alone need not remain true after adding other variables to that history.
+\end{remark}
+
+\begin{remark}[Where is the ``Difference''?]
+	The name comes from the partial sum $S_t=\sum_{s=1}^t g_s$.
+	Then, we have $\E(S_t\given\mathcal F_{t-1})=S_{t-1}$, so $S_t$ is a \emph{martingale} and $g_t=S_t-S_{t-1}$ is its difference.
+\end{remark}
+
+\begin{proposition}[Mean Zero and No Serial Correlation]\label{prop-mds-orthogonal}
+	An \gls{mds} has $\E g_t=0$.
+	If it has finite second moments, then for $s<t$,
+	\begin{align}
+		\E(g_tg_s\T)=0.
+	\end{align}
+\end{proposition}
+\begin{proof}
+	The \gls{lie} gives $\E g_t=\E[\E(g_t\given\mathcal F_{t-1})]=0$.
+	Since $g_s$ is known at date $t-1$,
+	\begin{align*}
+		\E(g_tg_s\T)
+		&=\E\left[\E(g_t\given\mathcal F_{t-1})g_s\T\right]=0.
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{remark}
+	More generally, $g_t$ is orthogonal to any function of past information for which the product is integrable.
+	This is stronger than being uncorrelated with individual past observations.
+	An \gls{mds} need not be stationary or have constant variance;
+	a scalar \gls{mds} with constant finite positive variance is white noise.
+\end{remark}
+
+\begin{example}[Dependence and Conditional Heteroskedasticity]
+	Let $z_t\iidto\normaldistribution(0,1)$ and set $e_t=z_{t-1}z_t$.
+	With $\mathcal F_t$ consisting of the history of $z_t$ through date $t$,
+	\begin{align}
+		\E(e_t\given\mathcal F_{t-1})=0,
+		\qquad \E(e_t^2\given\mathcal F_{t-1})=z_{t-1}^2.
+	\end{align}
+	Thus $e_t$ is an \gls{mds} with variance one but a time-varying conditional variance.
+	Dependence remains: $\E(e_t^2e_{t-1}^2)=3\neq1=\E(e_t^2)\E(e_{t-1}^2)$.
+\end{example}
+
+\begin{example}[White Noise Need Not Be an \gls{mds}]
+	With the same independent standard normal variables, let $u_t=z_t+z_{t-1}^2-1$.
+	Then $\E u_t=0$, $\var(u_t)=3$, and all nonzero-lag covariances vanish:
+	at lag one, the only potentially nonzero term is $\E[(z_{t-1}^2-1)z_{t-1}]=0$.
+	Nevertheless,
+	\begin{align}
+		\E(u_tu_{t-1}^2)=\E[(z_{t-1}^2-1)z_{t-1}^2]=2\neq0.
+	\end{align}
+	So $u_t$ is white noise but not an \gls{mds}, even relative to its own past.
+	A nonlinear function of the past can help predict it.
+\end{example}
+
+\subsection{The Central Limit Theorem}
+
+The following is a convenient stationary version of the \gls{mds} \gls{clt}.
+Ergodicity ensures that time averages recover population moments;
+it is an additional condition, not a consequence of being an \gls{mds}.
+
+\begingroup
+\tcbset{lines before break=4}
+\begin{theorem}[\gls{mds} \gls{clt}]\label{thm-mds-clt}
+	Let $\{g_t\}$ be a strictly stationary and ergodic \gls{mds} in $\reals^k$.
+	Suppose $\E\|g_t\|^2<\infty$, and define $\Omega=\E(g_tg_t\T)$.
+	Then, as $T\to\infty$,
+	\begin{align}\label{eq-mds-clt}
+		\frac1{\sqrt T}\sum_{t=1}^Tg_t
+		=\sqrt T\,\overline g_T
+		\dto\normaldistribution(0,\Omega).
+	\end{align}
+	For a scalar sequence, the asymptotic variance is simply $\E g_t^2$.
+\end{theorem}
+\endgroup
+
+\begin{remark}[Where Is the \gls{lrv}?]
+	There is no missing covariance adjustment.
+	Writing $\Gamma(j)=\E(g_tg_{t-j}\T)$, \autoref{prop-mds-orthogonal} gives
+	\begin{align}
+		\sum_{j=-\infty}^{\infty}\Gamma(j)=\Gamma(0)=\Omega.
+	\end{align}
+	Thus the \gls{lrv} equals the contemporaneous variance for an \gls{mds}.
+	Zero serial covariances explain this variance formula, but do not by themselves establish a \gls{clt}.
+\end{remark}
+
+\begin{remark}[Estimating the Variance]
+	If $g_t$ is observed, ergodicity and the finite second moment give
+	\begin{align}
+		\widehat\Omega=\frac1T\sum_{t=1}^Tg_tg_t\T\pto\Omega.
+	\end{align}
+	No lagged products are needed.
+	In the scalar case with $\Omega>0$, Slutsky's theorem gives
+	$\widehat\Omega^{-1/2}\sqrt T\,\overline g_T\dto\normaldistribution(0,1)$.
+\end{remark}
+
+\subsection{Why This Helps with Regression}
+
+Consider $Y_t=X_t\T\beta+e_t$, with $X_t\in\reals^k$.
+Suppose $X_t$ is known at date $t-1$ and $\E(e_t\given\mathcal F_{t-1})=0$.
+Provided $\E\|X_te_t\|<\infty$, the vector $g_t=X_te_t$ satisfies
+\begin{align}\label{eq-score-mds}
+	\E(g_t\given\mathcal F_{t-1})
+	=X_t\E(e_t\given\mathcal F_{t-1})=0.
+\end{align}
+Hence multiplying an \gls{mds} error by a regressor known from the past produces an \gls{mds} score.
+If $\{X_te_t\}$ is also strictly stationary and ergodic, with $\E(e_t^2\|X_t\|^2)<\infty$,
+\autoref{thm-mds-clt} gives
+\begin{align}
+	\frac1{\sqrt T}\sum_{t=1}^T g_t\dto\normaldistribution(0,\Omega),
+	\qquad \Omega=\E g_t g_t\T.
+\end{align}
+Let $\widehat\beta$ be the \gls{ols} estimator.
+If $\widehat Q_{xx}=T^{-1}\sum_tX_tX_t\T\pto Q_{xx}$ with $Q_{xx}$ positive definite, then
+\begin{align}
+	\sqrt T(\widehat\beta-\beta)
+	=\widehat Q_{xx}\inv\frac1{\sqrt T}\sum_{t=1}^T g_t
+	\dto\normaldistribution(0,V),\qquad
+	V=Q_{xx}\inv\Omega Q_{xx}\inv.
+\end{align}
+
+\begin{remark}[Application to ADL Models]
+	For an \gls{adl} model of order $(p,q)$, take
+	\begin{align*}
+		X_t=(1,Y_{t-1},\ldots,Y_{t-p},Z_t,Z_{t-1},\ldots,Z_{t-q})\T,
+	\end{align*}
+	and let $\mathcal F_t$ be the history of $Y_t$ and $Z_t$ through date $t$.
+	Since $Z_t$ need not be known at date $t-1$, assume
+	$\E(e_t\given\mathcal F_{t-1},Z_t)=0$.
+	Now $X_t$ is known given $(\mathcal F_{t-1},Z_t)$, so the \gls{lie} gives
+	\begin{align*}
+		\E(g_t\given\mathcal F_{t-1})
+		&=\E\left[X_t\E(e_t\given\mathcal F_{t-1},Z_t)\given\mathcal F_{t-1}\right]=0.
+	\end{align*}
+	Thus the ADL score $g_t=X_te_t$ is an \gls{mds} relative to $\{\mathcal F_t\}$.
+\end{remark}
+
+\begin{remark}[Conditional Homoskedasticity]
+	Let $\sigma_t^2=\E(e_t^2\given\mathcal F_{t-1})$.
+	Because $X_t$ is known from the past,
+	\begin{align}
+		\Omega=\E g_tg_t\T = \E X_tX_t\T\sigma_t^2.
+	\end{align}
+	For ADL models with contemporaneous $Z_t$, use $\sigma_t^2=\E(e_t^2\given\mathcal F_{t-1},Z_t)$ instead;
+	the same calculation applies.
+	If $\sigma_t^2=\sigma^2$, then $\Omega=\sigma^2Q_{xx}$ and $V=\sigma^2Q_{xx}\inv$.
+	Under conditional heteroskedasticity, the \gls{mds} \gls{clt} still applies,
+	but we retain the sandwich variance $V$.
+\end{remark}
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+\end{document}

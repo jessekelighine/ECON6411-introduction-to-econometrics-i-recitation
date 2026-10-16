@@ -1,0 +1,621 @@
+%!TEX program = xelatex
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+\title{G6411 Recitation Notes: Time Series Basics}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\maketitle
+
+\noindent
+Time series observations have a meaningful order.
+We ask whether a single time series can reveal population moments and how dependence affects inference.
+Our goal is to develop \gls{lln} and \gls{clt} analogous to those for \gls{iid} data.
+
+\section{Terminology and Basic Properties}
+
+\begin{definition}[Time Series]\label{def-time-series}
+	A time series is a sequence of random variables $\{Y_t\}$ indexed by discrete time.
+	We observe a sample $Y_1,\ldots,Y_T$ from this process.
+\end{definition}
+
+\begin{definition}[Time Series and Autocovariance]
+	Let $\{Y_t\}$ be a time series with finite first and second moments.
+	Its lag-$k$ autocovariance is
+	\begin{align}
+		\gamma_t(k)=\Cov(Y_t,Y_{t-k}).
+	\end{align}
+	When the variances are positive, the corresponding autocorrelation is
+	\begin{align}
+		\rho_t(k)=\frac{\gamma_t(k)}
+		{\sqrt{\Var(Y_t)\Var(Y_{t-k})}}.
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	The function $\gamma_t$ is an unconditional covariance:
+	the subscript $t$ records the date, not conditioning on information available at that date.
+\end{remark}
+
+\begin{definition}[Covariance Stationarity]\label{def-cov-stationary}
+	A time series is \emph{covariance stationary} (or \emph{weakly stationary}) if it has finite second moments and
+	\begin{align}
+		\E Y_t=\mu,\qquad \Cov(Y_t,Y_{t-k})=\gamma(k)
+		\quad\text{for all valid dates and lags}.
+	\end{align}
+	When $\gamma(0)>0$, the \gls{acf} is $\rho(k)=\gamma(k)/\gamma(0)$.
+\end{definition}
+
+\begin{remark}
+	If $\{Y_t\}$ is a scalar covariance-stationary process,
+	then $\gamma(k)=\gamma(-k)$ and $\gamma(0)=\Var(Y_t)$.
+	If $\{Y_t\}$ is a vector-valued covariance-stationary process,
+	let $\Gamma(k)$ be the lag-$k$ autocovariance matrix.
+	Then, $\Gamma(-k)=\Gamma(k)\T$ since $\Cov(Y_t,Y_{t-k})=\Cov(Y_{t-k},Y_t)\T$.
+\end{remark}
+
+\begin{example}[Random Walk]
+	Let $e_t\iidto\normaldistribution(0,\sigma^2)$ with $\sigma^2>0$.
+	For $Y_t=Y_{t-1}+e_t$ with fixed $Y_0=0$,
+	\begin{align}
+		Y_t=\sum_{j=1}^t e_j,\qquad \Var(Y_t)=t\sigma^2.
+	\end{align}
+	The mean is zero, but the variance changes with time.
+\end{example}
+
+\begin{definition}[Covariance Matrix of Covariance-Stationary Samples]
+	A covariance-stationary sample $\{Y_t\}_{t=1}^{T}$ has covariance matrix
+	\begin{align}
+		\begin{pmatrix}
+			\gamma(0) & \gamma(1) & \gamma(2) & \cdots & \gamma(T-1)\\
+			\gamma(1) & \gamma(0) & \gamma(1) & \cdots & \gamma(T-2)\\
+			\gamma(2) & \gamma(1) & \gamma(0) & \cdots & \gamma(T-3)\\
+			\vdots    & \vdots    & \vdots    & \ddots & \vdots\\
+			\gamma(T-1)&\gamma(T-2)&\gamma(T-3)&\cdots&\gamma(0)
+		\end{pmatrix}.
+	\end{align}
+	When $\gamma(0)>0$, dividing this matrix by $\gamma(0)$ gives the correlation matrix.
+\end{definition}
+
+\begin{remark}[Toeplitz]
+	A Toeplitz matrix is constant along each diagonal.
+	The covariance matrix of a covariance-stationary process is Toeplitz.
+	Some linear algebra results are easier to state for Toeplitz matrices than for general matrices.
+\end{remark}
+
+\begin{definition}[Strict Stationarity]\label{def-strict-stationary}
+	A process is strictly stationary if, for every finite collection of dates $t_1,\ldots,t_m$
+	and every integer shift $h$ for which all the dates are valid,
+	\begin{align}
+		(Y_{t_1},\ldots,Y_{t_m})\overset{d}{=}(Y_{t_1+h},\ldots,Y_{t_m+h}).
+	\end{align}
+\end{definition}
+
+\begin{remark}[Strict versus Covariance Stationarity]
+	\nameref{def-strict-stationary} with finite second moments implies \nameref{def-cov-stationary}.
+	The converse fails.
+	See \autoref{ex-same-moments}.
+\end{remark}
+
+\begin{example}[Identical Marginal Distributions Are Not Enough]
+	Toss a fair coin independently each time and record each outcome twice.
+	Writing $Z_j=1$ for heads and $Z_j=0$ for tails, the recorded sequence is
+	\begin{align}
+		Y_{2j-1}=Y_{2j}=Z_j,\qquad j=1,2,\ldots.
+	\end{align}
+	Every $Y_t$ equals zero or one with equal probability, so all marginal distributions are identical.
+	However,
+	\begin{align}
+		\Pr(Y_1=Y_2)=1,\qquad \Pr(Y_2=Y_3)=\frac12.
+	\end{align}
+	The joint distribution of two consecutive observations changes when we shift their dates.
+	Thus the process is not strictly stationary even though all marginal distributions are identical.
+\end{example}
+
+\begin{example}[Same Moments, Different Distributions]\label{ex-same-moments}
+	An \gls{iid} standard normal process $\{e_t\}$ and an \gls{iid} process $\{u_t\}$ taking values $-1$ and $1$
+	with equal probability both have mean zero and
+	\begin{align}
+		\gamma(0)=1,\qquad \gamma(k)=0\quad\forall k\neq0.
+	\end{align}
+	Assume the two processes are independent of each other,
+	and define a new process $\{Y_t\}$ by the following:
+	\begin{align}\label{eq-even-odd-process}
+		Y_t=
+		\begin{cases}
+			e_t, & t\text{ even},\\
+			u_t, & t\text{ odd}.
+		\end{cases}
+	\end{align}
+	Then $\{Y_t\}$ is covariance stationary but not strictly stationary.
+\end{example}
+
+\begin{remark}[Second-Order Equivalence]
+	There is this notion called \emph{second-order equivalence}:
+	the processes have the same mean and autocovariance function.
+	In \autoref{ex-same-moments}, $\{e_t\}$ and $\{u_t\}$ are second-order equivalent.
+\end{remark}
+
+\begin{definition}[White Noise]
+	A process $\{e_t\}$ is \emph{white noise}, written $e_t\sim\mathrm{WN}(0,\sigma^2)$, if
+	\begin{align}
+		\E e_t=0,\qquad \Var(e_t)=\sigma^2<\infty,\qquad
+		\Cov(e_t,e_s)=0\quad\text{ for }t\neq s.
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	A white noise process is covariance stationary, but not necessarily strictly stationary.
+	The white-noise assumption imposes only restrictions on means and covariances.
+	For example, the process defined in \eqref{eq-even-odd-process} is white noise, but clearly not strictly stationary.
+	A white noise process can even be dependent across time.
+	See \autoref{ex-uncorrelated-dependent}.
+\end{remark}
+
+\begin{example}[Uncorrelated but Dependent]\label{ex-uncorrelated-dependent}
+	Let $Z_t$ be \gls{iid} standard normal and set $e_t=Z_tZ_{t-1}$.
+	Then $\E e_t=0$, $\Var(e_t)=1$, and all nonzero-lag autocovariances vanish.
+	Therefore, $\{e_t\}$ is white noise.
+	Nevertheless, adjacent observations share $Z_{t-1}$ and are dependent:
+	\begin{align}
+		\E(e_t^2e_{t-1}^2)
+		=\E Z_t^2\,\E Z_{t-1}^4\,\E Z_{t-2}^2=3
+		\neq \E e_t^2\,\E e_{t-1}^2=1.
+	\end{align}
+\end{example}
+
+\begin{definition}[Correlogram]\label{def-correlogram}
+	A correlogram is a graph where the $y$-axis is the autocorrelation $\rho(k)$ and the $x$-axis is the lag $k$.
+\end{definition}
+
+\begin{remark}
+	\begin{figure}[t]
+		\centering
+		\includegraphics[width=\linewidth]{figures/acf.pdf}
+		\caption{Examples of Correlograms.}
+		\label{fig-acf}
+	\end{figure}
+	\autoref{fig-acf} illustrates three population \glspl{acf}:
+	white noise has zero autocorrelation at every nonzero lag;
+	gradual decay indicates that linear dependence persists across many lags;
+	and a cutoff indicates zero autocorrelation beyond a certain lag.
+\end{remark}
+
+\section{Ergodicity and Ergodic Theorem}\label{sec-ergodicity}
+
+\begin{remark}[What is Ergodicity?]
+	Ergodicity is a weird concept to grasp.
+	The idea is that it is the answer to the following question:
+	\begin{quote}
+		What condition allows \emph{time averages} to recover population averages without independence?
+	\end{quote}
+	We know that \gls{iid} is sufficient, but it is not necessary.
+	\emph{Ergodicity} is a much weaker condition under which an \gls{lln} is guaranteed,
+	and that \gls{lln} is typically known as the \emph{\nameref{thm-ergodic}}.
+	In this course, we will refrain from defining ergodicity formally,
+	as it is not worth our time to do so.
+	Nevertheless, \autoref{ex-casino} provides an intuitive understanding of ergodicity.
+\end{remark}
+
+\begin{remark}
+	An \gls{iid} process is ergodic.
+\end{remark}
+
+\begin{example}[Slot Machines]\label{ex-casino}
+	Imagine a casino with $100$ identical slot machines.
+	The machines operate independently,
+	and the pattern of payouts follows the same distribution whenever we start watching.
+	However, payouts depend on previous plays,
+	since each machine starts spinning from where it stopped on the previous play.
+	To decide whether playing is worthwhile,
+	we want to know the \emph{expected payout per play}.
+	There are two ways we might try to do this:
+	\begin{enumerate}
+		\item
+			Play the $100$ machines once each and average their payouts.
+			Since the machines operate independently, these payouts are \gls{iid}.
+			The usual \gls{lln} says that this average converges to the expected payout as the number of machines grows.
+			This is an \emph{ensemble} (or spatial) average.
+		\item
+			Playing each of the 100 machines once is very suspicious.
+			How about playing \emph{one} machine repeatedly like a normal person and averaging its payouts?
+			This is a \emph{time} average along one history generated by the machine's rule.
+			As the number of plays grows, does it converge to the same expected payout
+			that the average across machines estimates?
+	\end{enumerate}
+	If the payout sequence is \emph{ergodic},
+	both the \emph{time average} and the \emph{ensemble average} are guaranteed to converge to the same \emph{expected payout per play}.
+	Roughly speaking,
+	an \emph{ergodic} sequence reflects the population distribution in its long-run frequencies,
+	so one history is representative of the population.
+\end{example}
+
+\begin{definition}[Strong Mixing]
+	For a process $\{Y_t\}_{t=1}^{\infty}$,
+	let $\mathcal A_t$ be the collection of events
+	determined by $\{Y_1,\ldots,Y_t\}$, and let $\mathcal B_{t+k}$ be the collection of events
+	determined by $\{Y_{t+k},Y_{t+k+1},\ldots\}$.
+	For $k\ge1$, define
+	\begin{align}
+		\alpha(k)&\coloneqq\sup_{t\ge1}\sup_{\substack{A\in\mathcal A_t\\B\in\mathcal B_{t+k}}}\alpha(A,B) \\
+		\shortintertext{where}
+		\alpha(A,B)&\coloneqq \left|\Pr(A\cap B)-\Pr(A)\Pr(B)\right|.
+	\end{align}
+	The function $\alpha(k)$ is known as the \emph{mixing coefficient} at lag $k$.
+	The process is said to be \emph{strongly mixing} or \emph{$\alpha$-mixing} if $\alpha(k)\to0$ as $k\to\infty$.
+\end{definition}
+
+\begin{remark}
+	For \gls{iid} observations, $\alpha(k)=0$ for every $k\ge1$.
+\end{remark}
+
+\begin{remark}[Interpreting Strong Mixing]
+	Independence would give $\Pr(A\cap B)=\Pr(A)\Pr(B)$,
+	so $\alpha(A,B)$ measures the
+	``non-independent-ness'' between events $A\in\mathcal{A}_t$ and $B\in\mathcal{B}_{t+k}$.
+	The coefficient $\alpha(k)$ measures the largest departure from this equality
+	over all such events and all dates $t$.
+	\emph{Strong mixing} says that any dependence between the past and the future vanishes uniformly as the time gap $k$ grows.
+\end{remark}
+
+\begin{proposition}
+	A strictly stationary, strongly mixing process is ergodic.
+\end{proposition}
+
+\begin{remark}
+	In a sense, ergodicity is also about ``mixing,'' but it is strictly weaker than strong mixing.
+	In particular, ergodicity does not require dependence between observations to vanish as their temporal separation increases.
+\end{remark}
+
+\begin{example}[A Permanent Random Component]\label{ex-permanent-component}
+	Let $Y_t=A+\varepsilon_t$, where $\E A=0$, $\Var(A)=\tau^2>0$,
+	and $\varepsilon_t$ is \gls{iid}, independent of $A$, with mean zero and variance $\sigma^2$.
+	This process is strictly stationary, but
+	\begin{align}
+		\overline Y_T=A+\frac1T\sum_{t=1}^T\varepsilon_t\pto A,\qquad \E Y_t=0.
+	\end{align}
+	Time averaging removes $\varepsilon_t$, not $A$.
+	One history cannot average over the possible permanent components, so the process is not ergodic.
+\end{example}
+
+\begin{theorem}[Ergodic Theorem]\label{thm-ergodic}
+	If $\{Y_t\}$ is strictly stationary and ergodic and $\E|Y_t|<\infty$, then
+	\begin{align}
+		\overline Y_T=\frac1T\sum_{t=1}^T Y_t\pto\mu=\E Y_t.
+	\end{align}
+	More generally, for fixed $m$ and an integrable function $h$,
+	\begin{align}
+		\frac1T\sum_{t=m+1}^T h(Y_t,\ldots,Y_{t-m})
+		\pto \E h(Y_t,\ldots,Y_{t-m}).
+	\end{align}
+	The sum starts at $m+1$ so that all $m$ lags are observed.
+\end{theorem}
+
+\begin{corollary}[Estimating Autocovariances]\label{cor-sample-acf}
+	If the process is strictly stationary and ergodic with $\E Y_t^2<\infty$, then for every fixed $k\ge0$,
+	\begin{align}
+		\widehat\gamma_T(k)
+		=\frac1T\sum_{t=k+1}^T(Y_t-\overline Y_T)(Y_{t-k}-\overline Y_T)\pto\gamma(k).
+	\end{align}
+	If $\gamma(0)>0$, then $\widehat\rho_T(k)=\widehat\gamma_T(k)/\widehat\gamma_T(0)\pto\rho(k)$.
+\end{corollary}
+\begin{proof}
+	Apply \nameref{thm-ergodic} to $Y_t$ and to $Y_tY_{t-k}$.
+	The latter is integrable by Cauchy-Schwarz.
+	Expanding the centered product and using $\overline Y_T\pto\mu$ gives the result.
+\end{proof}
+
+\section{\glsentrylong{clt} for Dependent Data}\label{sec-clt-dependent}
+
+Let $\{Y_t\}$ be a covariance-stationary process with mean $\mu$ and autocovariance function $\gamma(k)$.
+Consider the sample mean $\overline Y_T=T\inv\sum_{t=1}^T Y_t$:
+\begin{align}
+	\Var(\overline Y_T)
+	=\frac1{T^2}\sum_{t=1}^T\sum_{s=1}^T\gamma(t-s)
+	&=\frac1T\sum_{k=-(T-1)}^{T-1}\left(1-\frac{|k|}{T}\right)\gamma(k)\nonumber\\
+	&=\frac1T\left[\gamma(0)+2\sum_{k=1}^{T-1}
+	\left(1-\frac{k}{T}\right)\gamma(k)\right].\label{eq-mean-var}
+\end{align}
+
+\begin{remark}
+	Positive autocovariances increase the variance of the mean, whereas negative ones reduce it.
+	Hence, $T$ dependent observations need not be more precise or imprecise than $T$ \gls{iid} observations.
+	If $\{Y_t\}$ is \gls{iid}, then $\Var(\overline Y_T)=\gamma(0)/T$.
+\end{remark}
+
+\begin{definition}[Absolutely Summable Covariance]\label{def-absolutely-summable}
+	A covariance-stationary process $\{Y_t\}$ has \emph{absolutely summable covariance} if
+	\begin{align}
+		\sum_{k=-\infty}^{\infty}|\gamma(k)|<\infty.
+	\end{align}
+	For a vector-valued process $Y_t\in\reals^k$,
+	its autocovariances are absolutely summable if the above holds for every entry of the autocovariance matrix $\Gamma(k)$.
+\end{definition}
+
+\begin{definition}[\glsentrylong{lrv}]\label{def-lrv}
+	Let $\{Y_t\}$ be a covariance-stationary process in $\reals^k$ with \nameref{def-absolutely-summable}.
+	Then
+	\begin{align}
+		\Omega_T\coloneqq T\Var(\overline Y_T)
+		&=\Gamma(0)+\sum_{j=1}^{T-1}\left(1-\frac jT\right)
+		[\Gamma(j)+\Gamma(j)\T]\tag{\ref{eq-mean-var}$'$}\\
+		&\to\Omega\coloneqq\sum_{j=-\infty}^{\infty}\Gamma(j).\label{eq-lrv}
+	\end{align}
+	The limit $\Omega$ is called the \gls{lrv} of the process.
+\end{definition}
+\begin{proof}[Proof of Convergence]
+	Expanding covariances as in \eqref{eq-mean-var} gives
+	\begin{align*}
+		\Omega_T=\sum_{|j|<T}\left(1-\frac{|j|}{T}\right)\Gamma(j).
+	\end{align*}
+	Since $\Gamma(-j)=\Gamma(j)\T$, this yields the displayed formula.
+	To prove convergence, fix an entry $(a,b)$ and any $\varepsilon>0$.
+	Absolute summability lets us choose $K$ such that
+	$\sum_{|j|>K}|\Gamma_{ab}(j)|<\varepsilon/2$.
+	For $T>K$,
+	\begin{align*}
+		|(\Omega_T)_{ab}-\Omega_{ab}|
+		\le\sum_{|j|<T}\frac{|j|}{T}|\Gamma_{ab}(j)|
+		+\sum_{|j|\ge T}|\Gamma_{ab}(j)|
+		\le\frac KT\sum_{|j|\le K}|\Gamma_{ab}(j)|
+		+\sum_{|j|>K}|\Gamma_{ab}(j)|.
+	\end{align*}
+	With this $K$ fixed, choose $T$ large enough that the first term is also less than $\varepsilon/2$.
+	Thus every entry converges, so $\Omega_T\to\Omega$.
+\end{proof}
+
+\begin{remark}[Some Examples]\leavevmode
+	\begin{itemize}
+		\item
+			For a scalar process, we have $\omega_T=T\Var(\overline Y_T)$ and
+			$\omega=\sum_{j=-\infty}^{\infty}\gamma(j)$.
+		\item
+			For white noise or \gls{iid} data, we have $\omega_T=\omega=\gamma(0)=\sigma^2$.
+		\item
+			For the process defined in \autoref{ex-permanent-component},
+			$\Var(\overline Y_T)=\tau^2+\sigma^2/T$ and $\omega_T=T\tau^2+\sigma^2$ diverges as $T\to\infty$.
+			Here, $\gamma(j)=\tau^2>0$ for every nonzero lag.
+	\end{itemize}
+\end{remark}
+
+\begin{theorem}[\gls{clt} for Dependent Data]\label{thm-clt-correlated}
+	Let $\{Y_t\}$ be a strictly stationary process in $\reals^k$ with mean $\mu$
+	and mixing coefficients $\alpha(k)$.
+	Suppose that for some $r>2$, $\E\|Y_t\|^r<\infty$ and $\sum_{j=1}^{\infty}\alpha(j)^{1-2/r}<\infty$.
+	Then
+	\begin{align}
+		\sqrt T(\overline Y_T-\mu)\dto\normaldistribution(0,\Omega),
+	\end{align}
+	where $\Omega$ is the \gls{lrv} of $\{Y_t\}$.
+\end{theorem}
+
+\begin{remark}[Ergodicity is Not Enough]
+	The mixing condition in \autoref{thm-clt-correlated} is much stronger than $\alpha(k)\to0$ as $k\to\infty$.
+	Ergodicity alone guarantees the \gls{lln} provided that the mean exists,
+	but does not generally guarantee a \gls{clt}.
+\end{remark}
+
+\begin{remark}
+	\autoref{thm-clt-correlated},
+	which is Theorem 14.15 in \textcite{hansen-econometrics},
+	is but one of many \glspl{clt} for dependent data,
+	just like Lindeberg-Lévy \gls{clt} is but one of many \glspl{clt} for independent data.
+\end{remark}
+
+\begin{remark}
+	Once a \gls{clt} is established,
+	the usual normal approximations and delta-method arguments apply.
+	To make these feasible, we need a consistent estimator of the \gls{lrv} $\Omega$.
+\end{remark}
+
+\subsection{Estimation of the \glsentrylong{lrv}}
+
+\begin{remark}[Why Not Estimate Every $\gamma(k)$?]
+	For a scalar process, under suitable moment and dependence conditions,
+	each fixed-lag estimator has variance $O(1/T)$ and estimation error $O_p(T^{-1/2})$.
+	But the number of available lags also grows with $T$.
+	Even if the estimation errors were uncorrelated,
+	summing order $T$ terms with variances of order $1/T$ would leave a variance of order one.
+	Thus, consistency at each fixed lag alone does not guarantee consistency of the growing sum.
+\end{remark}
+
+\begin{definition}
+	For $Y_t\in\reals^k$, define the sample autocovariance matrix as
+	\begin{align}
+		\widehat\Gamma_T(j)=\frac1T\sum_{t=j+1}^T (Y_t-\overline Y_T)(Y_{t-j}-\overline Y_T)\T,
+		\qquad 0\le j<T.
+	\end{align}
+	For $1\le j<T$, define $\widehat\Gamma_T(-j)=\widehat\Gamma_T(j)\T$.
+	This is the vector version of the estimator in \autoref{cor-sample-acf}.
+\end{definition}
+
+\begin{remark}[Truncating the Sum]
+	Choose a maximum lag $L<T$ and consider
+	\begin{align}\label{eq-lrv-truncated}
+		\widehat\Omega_T^{\mathrm{cut}}(L)
+		=\widehat\Gamma_T(0)+\sum_{j=1}^{L}
+		[\widehat\Gamma_T(j)+\widehat\Gamma_T(j)\T].
+	\end{align}
+	For fixed $L$, this converges to $\sum_{j=-L}^{L}\Gamma(j)$, not generally to $\Omega$.
+	It works if the omitted covariances sum to zero, for example if all autocovariances vanish beyond $L$.
+	Otherwise, we must let $L=L_T\to\infty$, but slowly enough that estimation error does not accumulate too quickly.
+\end{remark}
+
+\begin{remark}[Weighting the Lags]
+	A growing cutoff can produce a consistent estimator under suitable conditions,
+	but the abrupt cutoff has a drawback: the estimate need not be positive semidefinite.
+	See \autoref{ex-negative-variance}.
+\end{remark}
+
+\begin{example}\label{ex-negative-variance}
+	Take the scalar sample $(Y_1,Y_2,Y_3)=(1,-2,1)$, so $\overline Y_3=0$.
+	Then
+	\begin{align*}
+		\widehat\gamma_3(0)=\frac{1+4+1}{3}=2,
+		\qquad \widehat\gamma_3(1)=\frac{-2-2}{3}=-\frac43.
+	\end{align*}
+	With cutoff $L=1$, the \gls{lrv} estimate is
+	$\widehat\gamma_3(0)+2\widehat\gamma_3(1)=-2/3$.
+\end{example}
+
+\begin{definition}[Kernel]
+	A \emph{kernel} $K(j,L)$ assigns a weight to lag $j$ given a nonnegative integer \emph{bandwidth} $L$.
+	We consider kernels satisfying
+	\begin{enumerate}
+		\item(\textsc{Symmetry}) $K(-j,L)=K(j,L)$ for all $j$ and $L$.
+		\item(\textsc{Boundedness}) $\exists C<\infty$ such that $|K(j,L)|\le C$ for all $j$ and $L$.
+		\item(\textsc{Compact Support}) $K(j,L)=0$ for $|j|>L$.
+		\item(\textsc{Normalization}) $K(0,L)=1$ for all $L$.
+		\item(\textsc{Fixed-Lag Convergence}) $K(j,L)\to1$ as $L\to\infty$ for every fixed $j$.
+	\end{enumerate}
+\end{definition}
+
+\begin{remark}[Properties of Kernels]
+	A kernel is simply a rule for choosing weights on the sample autocovariances.
+	These conditions keep the weights bounded and symmetric, leave lag zero unchanged,
+	and omit lags beyond the bandwidth.
+	As the bandwidth grows, each fixed lag eventually receives weight close to one,
+	so its contribution is not permanently discounted.
+\end{remark}
+
+\begin{definition}[Kernel Estimator of the \gls{lrv}]
+	Given a kernel $K$ and a bandwidth $L_T<T$, define
+	\begin{align}\label{eq-hac}
+		\widehat\Omega_T
+		= \sum_{j=-(T-1)}^{T-1} K(j,L_T)\widehat\Gamma_T(j)
+		= \widehat\Gamma_T(0)+\sum_{j=1}^{L_T} K(j,L_T) [\widehat\Gamma_T(j)+\widehat\Gamma_T(j)\T].
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	The uniform kernel $K(j,L)=\mathbf{1}\{|j|\le L\}$ gives the cutoff in \eqref{eq-lrv-truncated}.
+\end{remark}
+
+\begingroup
+\tcbset{lines before break=4}
+\begin{definition}[Bartlett Kernel and \gls{nw} Estimator]
+	The \emph{Bartlett kernel} uses triangular weights:
+	\begin{align}
+		K(j,L)=\left(1-\frac{|j|}{L+1}\right)\mathbf{1}\{|j|\le L\}.
+	\end{align}
+	Substituting it into \eqref{eq-hac} gives the \emph{\gls{nw} estimator}
+	\begin{align}\label{eq-newey-west}
+		\widehat\Omega_T^{\mathrm{NW}}
+		=\widehat\Gamma_T(0)+\sum_{j=1}^{L_T}\left(1-\frac{j}{L_T+1}\right)
+		[\widehat\Gamma_T(j)+\widehat\Gamma_T(j)\T].
+	\end{align}
+\end{definition}
+\endgroup
+
+\begin{remark}[Positive Semidefiniteness]
+	A useful property of Bartlett weights is that the \gls{nw} estimator is positive semidefinite for \textsc{every sample}.
+	In particular, its scalar version cannot be negative, unlike the abrupt cutoff estimator.
+\end{remark}
+
+\begin{example}
+	Consider again \autoref{ex-negative-variance} with $L=1$.
+	Then the \gls{nw} estimate is
+	\begin{align}
+		\widehat\gamma_3(0)+\frac12[\widehat\gamma_3(1)+\widehat\gamma_3(1)]
+		=2+\frac12\left(-\frac43-\frac43\right)=\frac23>0.
+	\end{align}
+\end{example}
+
+\begin{theorem}[Consistency of the \gls{nw} Estimator]\label{thm-nw-consistency}
+	Let $\{Y_t\}$ be strictly stationary and ergodic with mixing coefficients $\alpha(j)$.
+	Suppose that, for some $r>4$,
+	$\E\|Y_t\|^r<\infty$ and
+	$\sum_{j=1}^{\infty}\alpha(j)^{1/2-2/r}<\infty$.
+	If $L_T\to\infty$ and $L_T^3/T=O(1)$, then
+	\begin{align}
+		\widehat\Omega_T^{\mathrm{NW}}\pto\Omega.
+	\end{align}
+\end{theorem}
+
+\begin{remark}
+	\autoref{thm-nw-consistency} is adapted from Theorem 14.34 in \textcite{hansen-econometrics}.
+	Hansen imposes moment conditions on the regression variables, whereas his \gls{nw} estimator uses the products $X_te_t$.
+	By Cauchy-Schwarz, finite moments of order $2r$ for $X_t$ and $e_t$ imply finite moments of order $r$ for $X_te_t$.
+	Thus, the corresponding moment order in Hansen's notation is $2r$, and his mixing exponent becomes $1/2-4/(2r)=1/2-2/r$.
+\end{remark}
+
+\begin{remark}[Choosing the Bandwidth: \glsentryshort{hac}/\glsentryshort{har}]
+	Traditional \gls{hac} inference uses a consistent estimator of the \gls{lrv},
+	with $L_T\to\infty$ but $L_T/T\to0$, subject to additional rate conditions.
+	For example, $L_T=\lfloor cT^{1/3}\rfloor$ with fixed $c>0$ satisfies the preceding theorem.
+	Consistency justifies the usual normal or chi-squared critical values asymptotically,
+	but finite-sample rejection rates can still be far from the nominal size.
+
+	\gls{har} inference focuses on the validity of tests rather than requiring a consistent variance estimator.
+	One approach is \emph{fixed-$b$} inference, which takes $L_T=\lfloor bT\rfloor$ for fixed $0<b<1$.
+	The variance estimator is then generally inconsistent, but under suitable conditions
+	tests remain asymptotically valid using nonstandard critical values.
+\end{remark}
+
+\begin{example}[Linear Regression]\label{ex-linear-regression}
+	Let $\{(Y_t,X_t)\}$, with $Y_t\in\reals$ and $X_t\in\reals^k$, be a strictly stationary time series satisfying
+	\begin{align*}
+		Y_t=X_t\T\beta+e_t
+		\quad\text{where}\quad
+		\E(X_te_t)=0.
+	\end{align*}
+	Let $Q_{xx}\coloneqq \E(X_tX_t\T)$ be finite and positive definite.
+	Let $g_t\coloneqq X_te_t$ have absolutely summable covariances and $\Omega_g\coloneqq \sum_{j=-\infty}^{\infty}\Gamma_g(j)$ be the \gls{lrv} of $\{g_t\}$.
+	If $\{X_t\}$ is ergodic, then
+	\begin{align}
+		\widehat Q_{xx}\coloneqq\frac1T\sum_{t=1}^T X_tX_t\T\pto Q_{xx}.
+	\end{align}
+	Furthermore, if the conditions of \autoref{thm-clt-correlated} hold for $\{g_t\}$,
+	then the \gls{ols} estimation error satisfies
+	\begin{align*}
+		\sqrt T(\widehat\beta-\beta)
+		=\widehat Q_{xx}\inv\frac1{\sqrt T}\sum_{t=1}^T X_te_t
+		\dto\normaldistribution(0,V)
+		\quad\text{where}\quad
+		V=Q_{xx}\inv\Omega_gQ_{xx}\inv.
+	\end{align*}
+	To estimate $V$, we need a consistent estimator of $\Omega_g$.
+	Estimate the score autocovariances by
+	\begin{align*}
+		\widehat\Gamma_{g,T}(j)
+		\coloneqq\frac1T\sum_{t=j+1}^T\widehat g_t\widehat g_{t-j}\T,
+		\qquad 0\le j\le L_T,
+	\end{align*}
+	where $\widehat g_t\coloneqq X_t\widehat e_t=X_t(Y_t-X_t\T\widehat\beta)$.
+	The \gls{ols} normal equations give $\sum_t\widehat g_t=0$, so no further centering is needed.
+	Now we can apply \gls{nw} according to \eqref{eq-newey-west} to estimate the \gls{lrv} of the scores.
+	If the conditions of \autoref{thm-nw-consistency} hold for $\{g_t\}$ and $\E\|X_t\|^4<\infty$,
+	then the feasible \gls{nw} estimator is consistent:
+	\begin{align*}
+		\widehat\Omega_{g,T}^{\mathrm{NW}}
+		=\widehat\Gamma_{g,T}(0)+\sum_{j=1}^{L_T}\left(1-\frac{j}{L_T+1}\right)
+		[\widehat\Gamma_{g,T}(j)+\widehat\Gamma_{g,T}(j)\T]
+		\pto
+		\Omega_g.
+	\end{align*}
+	Thus $\widehat V_{\mathrm{NW}}=\widehat Q_{xx}\inv\widehat\Omega_{g,T}^{\mathrm{NW}}\widehat Q_{xx}\inv\pto V$.
+	If $L_T=0$, this sandwich reduces to HC0.
+	This type of procedure applies to many time series models that we will see later.
+\end{example}
+
+\begin{remark}[Using Estimated Scores]\label{rem-estimated-scores}
+	As with HC0, consistency with the true scores $g_t$ does not automatically justify using $\widehat g_t$.
+	We must also control estimation error over the included lags;
+	the additional condition $\E\|X_t\|^4<\infty$ suffices in \autoref{ex-linear-regression}.
+\end{remark}
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+\section*{References}
+\printbibliography[heading=none]
+
+\end{document}
