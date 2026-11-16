@@ -1,0 +1,46 @@
+%!TEX program = xelatex
+% The chicken-and-egg problem of efficient GMM, in the notation of the note.
+% Two rows of three panels, read left to right, with captions on the panels.
+% Panels are cropped from meme.png (see Makefile); build with `make`.
+\documentclass[border=0pt]{standalone}
+\usepackage{fontspec}
+\setmainfont{Impact}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+
+\newcommand{\omegahat}{$\widehat\Omega_n$}
+\newcommand{\betahat}{$\widehat\beta$}
+\newcommand{\estimator}{$\displaystyle\frac1n\sum_{i=1}^n\widehat e_i^2z_iz_i'$}
+
+% Panel width and height (cm), and gap between panels (none: panels touch)
+\def\w{5}\def\h{2.8125}\def\gap{0}
+
+% White caption with a black outline, anchored at the bottom center of a panel:
+% black copies on a ring of offsets, then the white text on top.
+\tikzset{caption/.style={anchor=south,inner sep=0pt,text width=\w cm-0.3cm,align=center}}
+\newcommand{\memetext}[2]{%
+	\foreach \r in {0.45pt,1.5pt}
+		\foreach \a in {0,10,...,350}
+			\node[caption,text=black] at ($(#1)+(\a:\r)$) {#2};
+	\node[caption,text=white] at (#1) {#2};%
+}
+
+% #1: panel image, #2: column (0-2), #3: row (0-1), #4: caption
+\newcommand{\panel}[4]{%
+	\node[anchor=north west,inner sep=0pt] (p#2#3) at (#2*\w+#2*\gap,-#3*\h-#3*\gap) {\includegraphics[width=\w cm]{meme-panels/#1.png}};
+	\memetext{$(p#2#3.south)+(0,0.12)$}{#4}%
+}
+
+\begin{document}
+\begin{tikzpicture}[x=1cm,y=1cm]
+	\fontsize{11}{13}\selectfont
+	\hyphenpenalty=10000\exhyphenpenalty=10000
+	\panel{panel-2}{0}{0}{I NEED AN ESTIMATOR \omegahat\\FOR EFFICIENT GMM}
+	\panel{panel-1}{1}{0}{JUST USE \estimator}
+	\panel{panel-2}{2}{0}{BUT TO GET $\widehat e_i^2$,\\I NEED A GOOD ESTIMATOR \betahat\ FIRST}
+	\panel{panel-3}{0}{1}{THEN GET \betahat\\FROM EFFICIENT GMM}
+	\panel{panel-4}{1}{1}{BUT I NEED \omegahat\\TO RUN EFFICIENT GMM}
+	\panel{panel-5}{2}{1}{\fontsize{14}{16}\selectfont USE \estimator}
+\end{tikzpicture}
+\end{document}
