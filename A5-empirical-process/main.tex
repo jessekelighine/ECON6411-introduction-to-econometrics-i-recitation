@@ -1,0 +1,545 @@
+%!TEX program = xelatex
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Notes: Introduction to Empirical Processes}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\appendix
+
+\section{Motivation: The Empirical Distribution Function}
+
+Let $\{X_i\}_{i=1}^{n}$ be \gls{iid} scalar random variables with \gls{cdf} $F$.
+
+\begin{definition}[Empirical \glsentryshort{cdf}]
+	The \emph{empirical \gls{cdf}} is
+	\begin{align}
+		F_n(x)=\frac1n\sum_{i=1}^n\one\{X_i\le x\},
+		\qquad x\in\reals.
+	\end{align}
+\end{definition}
+
+\begin{remark}[The Empirical Distribution]
+	$F_n$ is a step function that jumps by $1/n$ at each observation (by $m/n$ at a value observed $m$ times).
+	It is itself a \gls{cdf}: the \gls{cdf} of the discrete distribution that puts probability $1/n$ on each observation.
+	This distribution is called the \emph{empirical distribution}.
+	Drawing from it means picking one of $X_1,...,X_n$ at random,
+	so drawing $n$ times independently from it is sampling with replacement from the data.
+\end{remark}
+
+\begin{proposition}[Pointwise Properties]\label{prop-pointwise}
+	For every fixed $x\in\reals$, we have
+	\begin{gather}
+		\E F_n(x)=F(x)
+		\quad\text{and}\quad
+		\Var F_n(x)=\frac{F(x)\bigl(1-F(x)\bigr)}{n},
+		\shortintertext{and}
+		\sqrt n\bigl(F_n(x)-F(x)\bigr)\dto\normaldistribution\Bigl(0,F(x)\bigl(1-F(x)\bigr)\Bigr).
+	\end{gather}
+	More generally, for fixed points $\{x_j\}_{j=1}^{m}$, we have
+	\begin{gather}
+		\sqrt{n}
+		\begin{bmatrix*}
+			F_n(x_1)-F(x_1) \\
+			\vdots \\
+			F_n(x_m)-F(x_m)
+		\end{bmatrix*}
+		\dto
+		\normaldistribution(0,V)
+		\shortintertext{where}
+		[V]_{kj}
+		% = \Cov\Bigl(\sqrt nF_n(x_k),\sqrt nF_n(x_j)\Bigr)
+		= F(\min\{x_k,x_j\})-F(x_k)F(x_j).
+		\label{eq-ecdf-covariance}
+	\end{gather}
+\end{proposition}
+\begin{proof}
+	For a fixed $x$, $F_n(x)$ is just a sample average of the \gls{iid} indicators $\one\{X_i\le x\}$,
+	which are Bernoulli with success probability $F(x)$,
+	so the mean and variance are those of a Bernoulli average:
+	each indicator has variance $F(x)(1-F(x))$, and averaging $n$ independent copies divides it by $n$.
+	The normal limit is the \gls{clt}.
+	For the covariance at two points $x$ and $x'$, the product of two indicators is the indicator of the smaller event,
+	$\one\{X_i\le x\}\one\{X_i\le x'\}=\one\{X_i\le \min\{x,x'\}\}$, so
+	\begin{align*}
+		\Cov\bigl(\sqrt nF_n(x),\sqrt nF_n(x')\bigr)
+		&=\Cov\bigl(\one\{X_i\le x\},\one\{X_i\le x'\}\bigr) \\
+		&=F(\min\{x,x'\})-F(x)F(x').
+	\end{align*}
+	The joint normal limit is the multivariate \gls{clt} applied to the vector of indicators.
+	Setting $x=x'$ recovers the variance $F(x)(1-F(x))$.
+\end{proof}
+
+\begin{remark}[Collection of Averages]
+	Many estimators are sample averages of some function of the data.
+	In the case of the empirical \gls{cdf}, the function is $X_i\mapsto\one\{X_i\le x\}$.
+	However, notice that for each point $x$ at which we evaluate $F_n$, we have a different function $X_i\mapsto\one\{X_i\le x\}$.
+	This can be problematic if we want to evaluate $F_n$ at a point that also depends on the data.
+	% Suppose that we want to evaluate $F_n$ at an \emph{estimator} that also depends on the data, for example a sample quantile.
+	% Then the function $f_x$ is itself random, and we cannot apply the \gls{clt} to it directly.
+	% It is all good that we have a \gls{clt} for each fixed $x$,
+	% however, what we really want is convergence \emph{uniformly} over $x$.
+	% To investigate this, we need to introduce some notation.
+\end{remark}
+
+\begin{example}\label{ex-mean}
+	Suppose that we are interested in what percentage of the population is below the mean $\mu=\E X_i$.
+	The obvious thing to do is to use the average $\overline X_n$
+	and plug it into the empirical \gls{cdf} and hope that the following holds:
+	\begin{align}
+		F_n(\overline X_n) \pto F(\mu).
+	\end{align}
+	However, the problem is that
+	$F_n$ is itself a random function that changes with $n$,
+	so the continuous mapping theorem, which requires a fixed function, does not apply.
+	Furthermore, $F_n$ and $\overline X_n$ are constructed from the same sample, so they are dependent in complicated ways.
+\end{example}
+
+\begin{remark}[Uniformity]
+	The solution to these problems is to show that $F_n$ converges \emph{uniformly} to $F$,
+	and by uniformly, we mean uniformly over all $x\in\reals$:
+	\begin{align}\label{eq-cdf-uniform-convergence}
+		\sup_{x\in\reals}|F_n(x)-F(x)| \pto 0.
+	\end{align}
+	If we have such a uniform convergence result,
+	it does not matter that $\overline X_n$ is random,
+	because $F_n$ is close to $F$ at every point all at once:
+	\begin{align}
+		\begin{aligned}
+			|F_n(\overline X_n)-F(\mu)|
+			&\le |F_n(\overline X_n)-F(\overline X_n)| + |F(\overline X_n)-F(\mu)| \\
+			&\le \sup_{x\in\reals}|F_n(x)-F(x)| + |F(\overline X_n)-F(\mu)|.
+		\end{aligned}
+	\end{align}
+	If $F$ is continuous, then $|F(\overline X_n)-F(\mu)|\pto0$ by the \gls{wlln} and continuous mapping.
+	Hence, uniform convergence of $F_n$ is the missing ingredient,
+	and this is the subject of empirical process theory.
+\end{remark}
+
+\section{Empirical Process Notation}
+
+\begin{definition}[Empirical Measure]
+	Let $P$ denote the distribution of $X_i$, and let $P_n$ denote the empirical distribution,
+	which puts mass $1/n$ on each observation.
+	For a function $f$, write
+	\begin{gather}
+		P_nf\coloneqq\frac1n\sum_{i=1}^nf(X_i)
+		\quad\text{and}\quad
+		Pf\coloneqq\E f(X_i)=\int f\diff P.
+	\end{gather}
+\end{definition}
+
+\begin{remark}[Reading it in English]
+	$P_nf$ reads ``average $f$ over the sample'' and $Pf$ reads ``average $f$ over the population''.
+	Both are linear in $f$, and $P_n$ is simply $P$ with the population replaced by the sample.
+\end{remark}
+
+\begin{example}
+	Many familiar statistics are of the form $P_nf$ for some $f$.
+	\begin{itemize}
+		\item With $f(X_i)=X_i$, $P_nf=\overline X_n$ and $Pf=\E X_i$.
+		\item With $f_x(X_i)=\one\{X_i\le x\}$, $P_n f_x=F_n(x)$ and $P f_x=F(x)$.
+		\item
+			Let $X_i=(X_{1i},X_{2i})\T\in\reals^2$ have mean zero.
+			With $f(X_i)=X_{1i}X_{2i}$ and $g(X_i)=X_{1i}^2$,
+			the slope of regressing $X_2$ on $X_1$ is
+			\begin{align}
+				\widehat\beta_n=(P_n g)\inv{P_n f}
+				\qquad\text{and}\qquad
+				\beta=(P g)\inv{P f}.
+			\end{align}
+	\end{itemize}
+	Note that these parameters are all functionals of the distribution $P$.
+	So we can write the three examples alternatively as
+	\begin{itemize}
+		\item With $f(X_i)=X_i$ and $T:P\mapsto Pf$, $\overline X_n=T(P_n)$ and $\E X_i=T(P)$.
+		\item With $f_x(X_i)=\one\{X_i\le x\}$ and $T:P\mapsto Pf_x$, $F_n(x)=T(P_n)$ and $F(x)=T(P)$.
+		\item
+			With $f(X_i)=X_{1i}X_{2i}$, $g(X_i)=X_{1i}^2$ and $T:P\mapsto(P g)\inv{P f}$,
+			$\widehat\beta_n=T(P_n)$ and $\beta=T(P)$.
+	\end{itemize}
+\end{example}
+
+\begin{remark}[Plug-In Estimators]
+	Since many parameters are functionals $\theta=T(P)$ of the distribution,
+	the intuitive estimator is to replace the population $P$ by the empirical distribution $P_n$,
+	i.e., the \emph{plug-in} estimator $\widehat\theta=T(P_n)$.
+	All the examples above are plug-in estimators.
+	The question of whether $T(P_n)$ is close to $T(P)$ then becomes a question of whether $P_n$ is close to $P$.
+\end{remark}
+
+\begin{definition}[Empirical Process]
+	For a class of functions $\mathcal F$, the \emph{empirical process} indexed by $\mathcal F$ is the collection
+	\begin{gather}
+		\{\mathbb G_nf:f\in\mathcal F\}
+		\shortintertext{where}
+		\mathbb G_nf\coloneqq\sqrt n(P_n-P)f\equiv\sqrt n(P_nf-Pf).
+	\end{gather}
+\end{definition}
+
+\begin{remark}
+	For a single fixed $f$ with $Pf^2<\infty$,
+	we have
+	$\mathbb G_nf\dto\normaldistribution\bigl(0,Pf^2-(Pf)^2\bigr)$ by the usual \gls{clt}.
+	Empirical process theory is about controlling $\mathbb G_nf$ and $(P_n-P)f$ \emph{simultaneously}, i.e., \emph{uniformly},
+	over all $f\in\mathcal F$.
+\end{remark}
+
+\begin{example}[\autoref{ex-mean} Revisited]
+	The leading example is the empirical \gls{cdf}, where $\mathcal F=\{f_x(\cdot)=\one\{\cdot\le x\}:x\in\reals\}$,
+	for which $\mathbb G_n f_x=\sqrt n\bigl(F_n(x)-F(x)\bigr)$ as $x$ ranges over $\reals$.
+	So now the uniform convergence \eqref{eq-cdf-uniform-convergence} can be restated as
+	\begin{align}
+		\sup_{f\in\mathcal F}|(P_n-P)f|=\sup_{x\in\reals}|F_n(x)-F(x)|\pto0.
+	\end{align}
+\end{example}
+
+\begin{remark}
+	The study of $(P_n-P)f$ and $\mathbb G_n f$ is analogous to the study of \gls{lln} and \gls{clt},
+	but now in the space of functions instead of $\reals^{k}$.
+	The \gls{lln} in this space is called a \gls{ulln}, of which Glivenko-Cantelli is the leading example;
+	the \gls{clt} in this space is called a \emph{functional central limit theorem}, of which Donsker's theorem is the leading example.
+\end{remark}
+
+\section{The Glivenko-Cantelli Theorem}
+
+\autoref{prop-pointwise} gives convergence at each fixed $x$,
+and the \nameref{thm-gc} theorem below upgrades this to uniform convergence over all $x$.
+
+\begin{theorem}[Glivenko-Cantelli]\label{thm-gc}
+	If $X_1,...,X_n$ are \gls{iid} with \gls{cdf} $F$, then
+	\begin{align}
+		\sup_{x\in\reals}\bigl|F_n(x)-F(x)\bigr|\asto0.
+	\end{align}
+	No assumption on $F$ is needed; in particular, $F$ need not be continuous.
+\end{theorem}
+\begin{proof}
+	The idea is to control $F_n-F$ at finitely many points, and use monotonicity in between.
+	Write $F(x-)=\lim_{t\uparrow x}F(t)$, and similarly $F_n(x-)=n\inv\sum_i\one\{X_i<x\}$.
+	Fix an integer $m$, and let $x_j=\inf\{x:F(x)\ge j/m\}$ for $j=1,...,m-1$, with $x_0=-\infty$ and $x_m=+\infty$.
+	By construction, $F(x_j-)\le j/m$ and $F(x_{j-1})\ge(j-1)/m$, so
+	\begin{align*}
+		F(x_j-)-F(x_{j-1})\le\frac1m
+		\qquad\text{for }j=1,...,m,
+	\end{align*}
+	with the conventions $F(-\infty)=F_n(-\infty)=0$ and $F(+\infty-)=F_n(+\infty-)=1$.
+	For $x\in[x_{j-1},x_j)$, monotonicity of $F_n$ and $F$ gives
+	\begin{align*}
+		F_n(x)-F(x)&\le F_n(x_j-)-F(x_{j-1})\le F_n(x_j-)-F(x_j-)+\frac1m,\\
+		F_n(x)-F(x)&\ge F_n(x_{j-1})-F(x_j-)\ge F_n(x_{j-1})-F(x_{j-1})-\frac1m.
+	\end{align*}
+	Hence
+	\begin{align*}
+		\sup_{x\in\reals}|F_n(x)-F(x)|
+		\le\max_{0\le j\le m}\max\Bigl\{|F_n(x_j)-F(x_j)|,\,|F_n(x_j-)-F(x_j-)|\Bigr\}+\frac1m.
+	\end{align*}
+	Each of the finitely many terms in the maximum converges to zero almost surely by the \gls{slln}.
+	So $\limsup_n\sup_x|F_n(x)-F(x)|\le1/m$ almost surely, for every $m$.
+	Letting $m\to\infty$ along the integers proves the theorem.
+\end{proof}
+
+\begin{remark}[How Fast?]
+	For each fixed point $x$, we have $F_n(x)-F(x)=O_p(n^{-1/2})$ by the \gls{clt}.
+	Uniformly over $x$, the rate is the same:
+	\nameref{thm-donsker}'s theorem below implies that $\sqrt n\sup_x|F_n(x)-F(x)|$ converges in distribution,
+	so $\sup_x|F_n(x)-F(x)|=O_p(n^{-1/2})$.
+\end{remark}
+
+\subsection{Glivenko-Cantelli Classes}
+
+The \nameref{thm-gc} theorem is a statement about one particular class of functions, i.e., the indicators of half-lines.
+The same question can be asked for any class.
+
+\begin{definition}[Glivenko-Cantelli Class]
+	A class of functions $\mathcal F$ is \emph{Glivenko-Cantelli} if
+	\begin{align}
+		\sup_{f\in\mathcal F}\bigl|(P_n-P)f\bigr|\asto0.
+	\end{align}
+	If the convergence only holds in probability, the class is \emph{weak Glivenko-Cantelli}.
+	Either statement is called a \emph{uniform law of large numbers}.
+\end{definition}
+
+\begin{remark}
+	\autoref{thm-gc} says that $\mathcal{F}\coloneqq\{\one\{\cdot\le x\}:x\in\reals\}$ is Glivenko-Cantelli.
+\end{remark}
+
+\begin{example}[Finite Classes]
+	Every finite class $\mathcal F=\{f_1,...,f_m\}$ with $P|f_j|<\infty$ for all $j$ is Glivenko-Cantelli,
+	because each $(P_n-P)f_j\asto0$ by the \gls{slln}, and the maximum of finitely many terms that each converge to zero converges to zero.
+\end{example}
+
+\begin{example}[A Class That Is Too Large]\label{ex-too-large}
+	Let $X_i$ have a continuous distribution, and let $\mathcal F$ be the indicators of all finite subsets of $\reals$.
+	Every $f\in\mathcal F$ has $Pf=0$, since a finite set has probability zero.
+	But the indicator of the observed sample $\{X_1,...,X_n\}$ is in $\mathcal F$, and $P_n$ of it equals one.
+	Hence $\sup_{f\in\mathcal F}|(P_n-P)f|=1$ for every $n$, so $\mathcal F$ is not Glivenko-Cantelli.
+\end{example}
+
+\begin{remark}
+	\autoref{ex-too-large} is pathological,
+	since the class is so rich that it can fit any sample perfectly,
+	and the sample average no longer tells us anything about the population average.
+	The proof of \autoref{thm-gc} suggests what makes a class small enough:
+	finitely many functions approximate every member of the class from above and below.
+	More precisely,
+	it does not attempt to control the whole class $\mathcal F=\{\one\{\cdot\leq x\}:x\in\reals\}$ at first,
+	but only controls it over $\mathcal F_m = \{\one\{\cdot\leq x\}:x\in\{x_1,...,x_m\}\}$,
+	which we know is Glivenko-Cantelli because it is finite.
+	Then, we show that functions in $\mathcal F$ can be approximated arbitrarily well by functions in $\mathcal F_m$ for large enough $m$.
+\end{remark}
+
+\begin{definition}[Bracket]
+	For functions $l\le u$, define the \emph{bracket} $[l,u]\coloneqq\{f\in\mathcal{F}:l\le f\le u\}$.
+	The bracket $[l,u]$ is called an \emph{$\varepsilon$-bracket} if $P(u-l)<\varepsilon$.
+\end{definition}
+
+\begin{theorem}[Bracketing Glivenko-Cantelli]\label{thm-bracketing}
+	If for every $\varepsilon>0$ the class $\mathcal F$ is covered by finitely many $\varepsilon$-brackets $[l_j,u_j]$
+	with $P|l_j|<\infty$ and $P|u_j|<\infty$, then $\mathcal F$ is Glivenko-Cantelli.
+\end{theorem}
+\begin{proof}
+	For $f\in[l_j,u_j]$, we have the lower and upper bounds as
+	\begin{align*}
+		(P_n-P)f &\le P_nu_j-Pf\le(P_n-P)u_j+P(u_j-l_j)<(P_n-P)u_j+\varepsilon, \\
+		(P_n-P)f &\ge P_nl_j-Pf\ge(P_n-P)l_j-P(u_j-l_j)>(P_n-P)l_j-\varepsilon.
+	\end{align*}
+	So $\sup_{f\in\mathcal F}|(P_n-P)f|\le\max_j\max\{|(P_n-P)u_j|,|(P_n-P)l_j|\}+\varepsilon$.
+	The maximum is over finitely many functions and converges to zero almost surely by the \gls{slln}.
+	Since $\varepsilon$ is arbitrary, the supremum converges to zero almost surely.
+\end{proof}
+
+\begin{remark}
+	The proof of \autoref{thm-gc} is exactly this argument,
+	with the brackets $\bigl[\one\{\cdot\le x_{j-1}\},\one\{\cdot<x_j\}\bigr]$, each of which has $P(u-l)\le1/m$.
+\end{remark}
+
+\begin{example}[Smooth Parametric Classes]\label{ex-lipschitz}
+	Let $\mathcal F=\{f_\theta:\theta\in\Theta\}$ with $\Theta\subset\reals^k$ compact,
+	and suppose there is a function $H$ with $PH<\infty$ such that
+	\begin{align}
+		|f_\theta(x)-f_{\theta'}(x)|\le H(x)\|\theta-\theta'\|
+		\qquad\forall\theta,\theta'\in\Theta,
+	\end{align}
+	and $P|f_{\theta}|<\infty$ for some $\theta$.
+	Cover $\Theta$ by finitely many balls of radius $\delta$, with centers $\theta_1,...,\theta_m$.
+	Each $f_\theta$ with $\|\theta-\theta_j\|\le\delta$ lies in the bracket $[f_{\theta_j}-\delta H,\,f_{\theta_j}+\delta H]$,
+	which is an $\varepsilon$-bracket once $2\delta PH<\varepsilon$.
+	So \autoref{thm-bracketing} applies, and $\mathcal F$ is Glivenko-Cantelli.
+\end{example}
+
+\begin{example}[Nonlinear \glsentryshort{gmm}]\label{ex-gmm}
+	Consistency of nonlinear \gls{gmm} requires a \gls{ulln}:
+	the sample moments must converge to the population moments \emph{uniformly} over $\theta\in\Theta$.
+	\autoref{ex-lipschitz} reduces this to a Lipschitz condition that can be checked directly.
+	Consider the regression
+	\begin{align}
+		y_i=\exp(x_i\T\theta_0)+e_i
+		\quad\text{and}\quad
+		\E(e_i\mid z_i)=0,
+	\end{align}
+	with moment function $g(w_i,\theta)=z_i\bigl(y_i-\exp(x_i\T\theta)\bigr)$, where $w_i=(y_i,x_i,z_i)$.
+	The parameter enters nonlinearly, so the sample moments $\overline g_n(\theta)=P_n g(\cdot,\theta)$
+	are not linear in $\theta$.
+	Write $\overline g(\theta)=P g(\cdot,\theta)$ for the population moments.
+	By the mean value theorem, for some $\bar\theta$ between $\theta$ and $\theta'$,
+	\begin{align}
+		\bigl|g_j(w_i,\theta)-g_j(w_i,\theta')\bigr|
+		&=|z_{ji}|\,\bigl|\exp(x_i\T\bar\theta)\,x_i\T(\theta-\theta')\bigr| \\
+		&\le\underbrace{\|z_i\|\,\|x_i\|\,\exp\{c\|x_i\|\}}_{H(w_i)}\,\|\theta-\theta'\|,
+	\end{align}
+	where $c=\sup_{\theta\in\Theta}\|\theta\|<\infty$ since $\Theta$ is compact.
+	So each coordinate $g_j(\cdot,\theta)$ is Lipschitz in $\theta$, and the Lipschitz constant $H(w_i)$ does not depend on $\theta$.
+	If $PH<\infty$ and the moments are integrable for some $\theta$,
+	then by \autoref{ex-lipschitz} each class $\{g_j(\cdot,\theta):\theta\in\Theta\}$ is Glivenko-Cantelli, and so
+	\begin{align}
+		\sup_{\theta\in\Theta}\bigl\|(P_n-P)g(\cdot,\theta)\bigr\|
+		= \sup_{\theta\in\Theta}\bigl\|\overline g_n(\theta) - \overline g(\theta)\bigr\|\asto0,
+	\end{align}
+	since a finite-dimensional vector converges uniformly if each of its coordinates does.
+	This is the usual \gls{ulln} assumed to prove consistency of \gls{gmm}.
+\end{example}
+
+\section{Donsker's Theorem}
+
+The Glivenko-Cantelli theorem is a \gls{ulln}.
+There is also a uniform \gls{clt} or functional \gls{clt},
+which describes the whole function $x\mapsto\sqrt n\bigl(F_n(x)-F(x)\bigr)$ at once.
+To state it, we need to say what it means for a random \emph{function} to converge in distribution, and what the limit is.
+
+\subsection{Convergence of Random Functions}
+
+For each sample, $x\mapsto\sqrt n\bigl(F_n(x)-F(x)\bigr)$ is a bounded function on $\reals$.
+So it is natural to view it as a random element of a space of functions.
+
+\begin{definition}[The Space $\ell^\infty(\reals)$]
+	Let $\ell^\infty(\reals)$ be the space of bounded functions $z:\reals\to\reals$, with the uniform distance
+	\begin{align}
+		\|z_1-z_2\|_\infty=\sup_{x\in\reals}|z_1(x)-z_2(x)|.
+	\end{align}
+	A \emph{random function} is a map from the sample space into $\ell^\infty(\reals)$.
+\end{definition}
+
+\begin{remark}
+	Convergence in distribution of random vectors can be characterized by expectations of bounded continuous functions.
+	This is the portmanteau lemma \parencite[Lemma 2.2]{van-der-vaart-1998}.
+	The same characterization defines convergence in distribution of random functions.
+\end{remark}
+
+\begin{definition}[Weak Convergence in $\ell^\infty(\reals)$]
+	A sequence of random functions $Z_n$ \emph{converges in distribution} to a random function $Z$, written $Z_n\dto Z$, if
+	\begin{align}
+		\E h(Z_n)\to\E h(Z)
+	\end{align}
+	for every bounded $h:\ell^\infty(\reals)\to\reals$ that is continuous with respect to $\|\cdot\|_\infty$.
+\end{definition}
+
+\begin{remark}[What Does This Require?]\label{rem-weak-convergence}
+	Take $h(z)=g\bigl(z(x_1),...,z(x_m)\bigr)$, where $g$ is bounded and continuous.
+	Then, $Z_n\dto Z$ implies convergence in distribution of every finite-dimensional vector
+	$\bigl(Z_n(x_1),...,Z_n(x_m)\bigr)$.
+	A natural question is whether the converse is true: if every finite-dimensional vector converges in distribution, does $Z_n\dto Z$?
+	The answer is \textsc{no}, because convergence of finite-dimensional vectors does not control the behavior of $Z_n$ \emph{between} the chosen points:
+	for example, $Z_n(x)=\one\{0<x<1/n\}$ converges to zero at every fixed $x$, yet $\sup_x|Z_n(x)|=1$ for all $n$.
+	An additional condition, called \emph{asymptotic tightness}, is required \parencite[Theorem 18.14]{van-der-vaart-1998},
+	which prevents the paths of $Z_n$ from developing such ever narrower spikes that every fixed set of points eventually misses.
+\end{remark}
+
+% \begin{theorem}[Continuous Mapping]
+% 	If $Z_n\dto Z$ in $\ell^\infty(\reals)$ and $h:\ell^\infty(\reals)\to\reals^d$ is continuous, then $h(Z_n)\dto h(Z)$.
+% \end{theorem}
+%
+% \begin{remark}
+% 	For example, $h(z)=\|z\|_\infty$ is continuous, which is what makes the supremum of $\sqrt n(F_n-F)$ tractable.
+% \end{remark}
+
+\subsection{Gaussian Processes and the Brownian Bridge}
+
+\begin{definition}[Gaussian Process]
+	A random function $Z$ is a \emph{Gaussian process} if, for every finite set of points $x_1,...,x_m$,
+	the vector $\bigl(Z(x_1),...,Z(x_m)\bigr)$ is multivariate normal,
+	so its distribution is determined by its mean function $x\mapsto\E Z(x)$ and covariance function $(x,y)\mapsto\Cov\bigl(Z(x),Z(y)\bigr)$.
+\end{definition}
+
+\begin{definition}[Brownian Motion and Brownian Bridge]
+	A \emph{standard Brownian motion} $W$ on $[0,1]$ is a Gaussian process with continuous paths,
+	$W(0)=0$, mean zero, and $\Cov\bigl(W(u),W(v)\bigr)=\min\{u,v\}$;
+	equivalently, its increments $W(v)-W(u)\sim\normaldistribution(0,v-u)$ for $u<v$ are independent across disjoint intervals.
+	A \emph{standard Brownian bridge} is
+	\begin{align}
+		B(u)=W(u)-uW(1),
+		\qquad u\in[0,1].
+	\end{align}
+	It is a mean-zero Gaussian process with $B(0)=B(1)=0$ and
+	\begin{align}
+		\Cov\bigl(B(u),B(v)\bigr)=\min\{u,v\}-uv.
+	\end{align}
+\end{definition}
+
+\begin{remark}[Bridge]
+	The covariance of $B$ follows by expanding:
+	\begin{align*}
+		\Cov\bigl(W(u)-uW(1),W(v)-vW(1)\bigr)
+		&= \min\{u,v\}-vu-uv+uv \\
+		&= \min\{u,v\}-uv.
+	\end{align*}
+	The name comes from pinning $W$ down at $u=1$: the bridge starts and ends at zero.
+\end{remark}
+
+\begin{definition}[$F$-Brownian Bridge]
+	For a \gls{cdf} $F$, the \emph{$F$-Brownian bridge} is the random function
+	\begin{align}
+		\mathbb G_F(x)=B\bigl(F(x)\bigr),
+		\quad x\in\reals.
+	\end{align}
+\end{definition}
+
+\begin{remark}
+	Since $F$ is nondecreasing, $\min\{F(x), F(y)\}=F(\min\{x,y\})$, so
+	\begin{align}
+		\Cov\bigl(\mathbb G_F(x),\mathbb G_F(y)\bigr)=F(\min\{x,y\})-F(x)F(y),
+	\end{align}
+	which is exactly the covariance \eqref{eq-ecdf-covariance} of $\sqrt n(F_n-F)$.
+	The bridge property also matches: $\mathbb G_F(x)\to0$ as $x\to\pm\infty$, just as $F_n(x)-F(x)\to0$ as $x\to\pm\infty$.
+\end{remark}
+
+\subsection{Donsker's Theorem}
+
+\begin{theorem}[Donsker]\label{thm-donsker}
+	If $X_1,...,X_n$ are \gls{iid} with \gls{cdf} $F$, then in $\ell^\infty(\reals)$,
+	\begin{align}
+		\sqrt n\bigl(F_n-F\bigr)\dto\mathbb G_F.
+	\end{align}
+\end{theorem}
+\begin{proof}
+	Omitted, see \textcite[Theorem 19.3]{van-der-vaart-1998}.
+\end{proof}
+
+\begin{remark}[Comparison with \autoref{prop-pointwise}]
+	The finite-dimensional part of the theorem is \autoref{prop-pointwise}:
+	for fixed $x_1,...,x_m$, the limit of $\sqrt n\bigl(F_n(x_j)-F(x_j)\bigr)_{j=1}^m$ is normal with the covariance of $\mathbb G_F$.
+	The real content is asymptotic tightness (\autoref{rem-weak-convergence}), which upgrades this to convergence of the whole function.
+\end{remark}
+
+\begin{remark}[Donsker Classes]
+	Just as the \nameref{thm-gc} theorem generalizes to Glivenko-Cantelli classes,
+	Donsker's theorem generalizes to \emph{Donsker classes}:
+	classes $\mathcal F$ for which $\{\mathbb G_nf:f\in\mathcal F\}$ converges in distribution, uniformly over $f\in\mathcal F$, to a Gaussian process.
+	Donsker's theorem says that $\{\one\{\cdot\le x\}:x\in\reals\}$ is a Donsker class.
+\end{remark}
+
+\begin{example}[Kolmogorov-Smirnov]\label{ex-ks}
+	Since $z\mapsto\|z\|_\infty$ is continuous on $\ell^\infty(\reals)$, the continuous mapping theorem gives
+	\begin{align}
+		\sqrt n\sup_{x\in\reals}\bigl|F_n(x)-F(x)\bigr|\dto\sup_{x\in\reals}|\mathbb G_F(x)|.
+	\end{align}
+	When $F$ is continuous, the limit does not depend on $F$:
+	it is the supremum of the absolute value of a standard Brownian bridge on $[0,1]$.
+	This is the basis of the Kolmogorov-Smirnov test of $H_0:F=F_0$ for a fully specified continuous $F_0$.
+	In practice, the statistic is $D_n=\sup_x|F_n(x)-F_0(x)|$.
+	We reject $H_0$ at level $\alpha$ if $\sqrt nD_n$ exceeds the $1-\alpha$ quantile of $\sup_u|B(u)|$,
+	which is about $1.36$ for $\alpha=0.05$.
+\end{example}
+
+\section{Bootstrap}
+
+The bootstrap replaces the population $P$ by the empirical distribution $P_n$,
+and draws a new sample $X_1^*,...,X_n^*$ from $P_n$, with its own empirical distribution $P_n^*$.
+For the bootstrap world to tell us something about the real world, two things are needed.
+\begin{enumerate}
+	\item
+		\emph{Consistency.}
+		The bootstrap world should resemble the real world:
+		$P_n$ should be close to $P$, which is the Glivenko-Cantelli theorem,
+		and $P_n^*$ should be close to $P_n$, which is a \emph{bootstrap Glivenko-Cantelli theorem}.
+	\item
+		\emph{Distribution.}
+		The fluctuations should also match:
+		given the data, $\sqrt n(P_n^*-P_n)$ should have the same limit as $\sqrt n(P_n-P)$,
+		which is a \emph{bootstrap Donsker theorem}.
+		% This is what makes the distribution of $\sqrt n(T(P_n^*)-T(P_n))$, which we can simulate,
+		% approximate that of $\sqrt n(T(P_n)-T(P))$, which we cannot.
+\end{enumerate}
+Remarkably, both bootstrap results require essentially no additional assumptions:
+for the empirical \gls{cdf} they hold for every $F$ \parencite[Theorem 23.7]{van-der-vaart-1998}.
+
+\section*{Reference and Further Reading}
+
+\printbibliography[heading=none]
+
+\noindent
+This note draws on Chapters 18--19 of \textcite{van-der-vaart-1998} for empirical processes;
+Chapter 23 then develops the bootstrap using the language of empirical processes.
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+\end{document}
