@@ -1,0 +1,409 @@
+%!TEX program = xelatex
+\documentclass[a4paper,12pt]{article}
+\usepackage{fontspec}\defaultfontfeatures{Ligatures=TeX}
+\usepackage[a4paper,vmargin={3cm,3.5cm},hmargin={3cm,3cm}]{geometry}
+%-----------------------------------------------------------------------------%
+\usepackage{settings}
+%-----------------------------------------------------------------------------%
+%%% Title %%%
+\title{G6411 Recitation Notes: Bootstrap 101}
+\author{Jesse Chieh Chen\\\href{mailto:cc5229@columbia.edu}{cc5229@columbia.edu}}
+\date{\today}
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+\maketitle
+
+\begin{remark}[Motivation and Origins of the Bootstrap]
+	Suppose an estimator satisfies $\sqrt n(\widehat\theta-\theta_0)\dto\normaldistribution(0,V)$.
+	We rely on this asymptotic normality to conduct inference, but it presents two issues in practice:
+	\begin{enumerate}
+		\item The normal approximation may be inaccurate in finite samples.
+		\item The variance $V$ could be hard to derive or estimate.
+	\end{enumerate}
+	The \emph{bootstrap}, introduced by \textcite{efron-1979}, approximates the sampling distribution by simulation instead,
+	replacing the unknown population distribution by the data.
+	The \emph{percentile-$t$} method can be more accurate than the normal approximation,
+	and for very complicated estimators where $V$ is hard to derive, the \emph{percentile interval} is easy to compute.
+	However, keep in mind that the bootstrap is itself an \emph{asymptotic} method;
+	its correctness is only guaranteed as $n\to\infty$.
+\end{remark}
+
+\section{The Bootstrap Principle}
+
+Let $X_1,...,X_n$ be \gls{iid} with unknown \gls{cdf} $F_0$, and let $\widehat\theta$ estimate $\theta_0$.
+For inference, we want the distribution of
+\begin{align}
+	G_n(t,F_0)=P_{F_0}(R_n\le t)
+	\quad\text{where}\quad
+	R_n=\sqrt n(\widehat\theta-\theta_0).
+\end{align}
+If $F_0$ were known, we would know $G_n(\cdot,F_0)$ exactly, and could simply read off the quantiles of $R_n$ from $G_n(\cdot,F_0)$.
+The true distribution $F_0$ is unknown, but we can estimate it by the empirical distribution $F_n$.
+The \emph{bootstrap principle} is to replace $F_0$ by $F_n$ everywhere,
+including in the definition of $R_n$ to conduct inference.
+
+\begin{definition}[Empirical Distribution]
+	The \emph{empirical \gls{cdf}} is
+	\begin{align}
+		F_n(x)=\frac1n\sum_{i=1}^n\one\{X_i\le x\}.
+	\end{align}
+	It is the \gls{cdf} of the distribution that puts mass $1/n$ on each observation.
+\end{definition}
+
+\begin{remark}[Properties]
+	Here are some properties of the empirical distribution:
+	\begin{enumerate}
+		\item
+			A draw from $F_n$ picks one of $\{X_1,...,X_n\}$ uniformly at random,
+			so $n$ independent draws from $F_n$ amount to sampling \emph{with replacement} from the data.
+		\item
+			An expectation with respect to $F_n$ is the sample average.
+			For $X\sim F_n$ and any function $g$,
+			\begin{align}
+				\E g(X)=\int g(x)\diff F_n(x)=\frac1n\sum_{i=1}^ng(X_i).
+			\end{align}
+		\item
+			By the Glivenko-Cantelli theorem, $\sup_x|F_n(x)-F_0(x)|\pto0$ for every $F_0$.
+	\end{enumerate}
+\end{remark}
+
+\begin{definition}[Bootstrap Distribution]
+	Conditional on the data $\{X_i\}_{i=1}^{n}$,
+	draw $\{X_i^*\}_{i=1}^{n}\iidto F_n$,
+	and compute $\widehat\theta^*$ by applying the same estimator to $\{X_i^*\}$.
+	Let $P^*$ and $\E^*$ denote the probability and expectation under the empirical distribution $F_n$, i.e., conditional on the data.
+	The bootstrap analogue of $R_n$ and its distribution are
+	\begin{align}
+		G_n^*(t)=P^*(R_n^*\le t)
+		\quad\text{where}\quad
+		R_n^*=\sqrt n(\widehat\theta^*-\widehat\theta).
+	\end{align}
+	The bootstrap approximates the unknown $G_n(\cdot,F_0)$ by $G_n^*$.
+\end{definition}
+
+\begin{remark}[Centering]
+	Replacing $F_0$ by $F_n$ also replaces the true parameter:
+	in the bootstrap world, $F_n$ is the population, and its true parameter is $\widehat\theta$;
+	e.g., the mean of $F_n$ is $\overline X_n$.
+	So in $R_n=\sqrt n(\widehat\theta-\theta_0)$, the estimate $\widehat\theta$ becomes $\widehat\theta^*$ and the true value $\theta_0$ becomes $\widehat\theta$.
+	Centering at $\theta_0$ is not only infeasible but also wrong:
+	\begin{align}
+		\sqrt n(\widehat\theta^*-\theta_0)=R_n^*+\sqrt n(\widehat\theta-\theta_0),
+	\end{align}
+	where the last term is an unknown random shift,
+	which defeats the purpose of the bootstrap.
+\end{remark}
+
+\begin{remark}
+	In theory, once the data is given to us, we know $G_n^*$ \emph{exactly},
+	since $G_n^*$ depends only on the data.
+	However, it is rarely available in closed form, so we compute it by simulation.
+	For $b=1,...,B$, draw a bootstrap sample $\{X_1^{*(b)},...,X_n^{*(b)}\}$ from $F_n$ and compute $R_n^{*(b)}=\sqrt n(\widehat\theta^{*(b)}-\widehat\theta)$.
+	Then, for fixed $n$, by the \gls{wlln},
+	\begin{align}
+		\widehat G_{n,B}^*(t)\coloneqq\frac1B\sum_{b=1}^B\one\bigl\{R_n^{*(b)}\le t\bigr\}\pto G_n^*(t)
+		\quad\text{as}\quad
+		B\to\infty.
+	\end{align}
+	Furthermore, by the Glivenko-Cantelli theorem, $\sup_t|\widehat G_{n,B}^*(t)-G_n^*(t)|\pto0$ as $B\to\infty$.
+	Hence, in bootstrap theory, we typically ignore this source of error.
+\end{remark}
+
+\begin{example}[Sample Mean]\label{ex-mean}
+	Let $\E X_i=\mu$ and $\var X_i=\sigma^2\in(0,\infty)$, and let $\overline X_n$ and $\widehat\sigma_n^2=n\inv\sum_i(X_i-\overline X_n)^2$ be the sample mean and variance.
+	The statistic of interest is the $t$-statistic and its bootstrap analogue,
+	\begin{align}
+		T_n=\frac{\sqrt n(\overline X_n-\mu)}{\widehat\sigma_n}
+		\quad\text{and}\quad
+		T_n^*=\frac{\sqrt n(\overline X_n^*-\overline X_n)}{\widehat\sigma_n^*},
+	\end{align}
+	where $\overline X_n^*$ and $\widehat\sigma_n^{*2}$ are computed from the bootstrap sample.
+	Each replication recomputes both the mean and the standard error.
+	A single bootstrap draw satisfies
+	\begin{align}
+		\E^*X_i^*=\frac1n\sum_{j=1}^nX_j=\overline X_n
+		\quad\text{and}\quad
+		\var^*X_i^*=\frac1n\sum_{j=1}^n(X_j-\overline X_n)^2=\widehat\sigma_n^2,
+	\end{align}
+	so $\E^*\overline X_n^*=\overline X_n$ and $\var^*\overline X_n^*=\widehat\sigma_n^2/n$.
+\end{example}
+
+\section{Bootstrap Consistency}
+
+\begin{definition}[Bootstrap Consistency]
+	The bootstrap is \emph{consistent} for $R_n$ if
+	\begin{align}
+		\sup_{t\in\reals}\bigl|G_n^*(t)-G_n(t,F_0)\bigr|\pto0
+		\quad\text{as}\quad
+		n\to\infty.
+	\end{align}
+\end{definition}
+
+\begin{remark}[Interpretation]
+	As $n\to\infty$,
+	the bootstrap distribution $G_n^*$ is uniformly close to the true distribution $G_n(\cdot,F_0)$ of $R_n$.
+	In this definition, we do not require $G_n^*$ or $G_n(\cdot,F_0)$ to converge to a limit.
+	Nonetheless, we typically prove consistency by showing that both converge to the same limit.
+\end{remark}
+
+\begin{remark}[Two Sources of Error]
+	The \emph{statistical} error $G_n^*-G_n(\cdot,F_0)$ is controlled by $n$;
+	the \emph{simulation} error $\widehat G_{n,B}^*-G_n^*$ is controlled by $B$.
+	A larger $B$ reduces the latter, but cannot fix an inconsistent bootstrap.
+\end{remark}
+
+\begin{lemma}\label{lem-consistency}
+	Suppose $G_n(t,F_0)\to G(t)$ as $n\to\infty$ and $G_n^*(t)\pto G(t)$ for every $t$, where $G$ is a continuous \gls{cdf}.
+	Then the bootstrap is consistent.
+\end{lemma}
+\begin{proof}
+	Fix $\varepsilon>0$.
+	Since $G$ is continuous, we can pick $-\infty=t_0<t_1<...<t_K=\infty$ with $G(t_j)-G(t_{j-1})\le\varepsilon$ for all $j$.
+	For $t\in[t_{j-1},t_j]$, monotonicity of $G_n^*$ and $G$ gives
+	\begin{align}
+		G_n^*(t_{j-1})-G(t_{j-1})-\varepsilon
+		\le G_n^*(t)-G(t)
+		\le G_n^*(t_j)-G(t_j)+\varepsilon,
+	\end{align}
+	so $\sup_t|G_n^*(t)-G(t)|\le\max_j|G_n^*(t_j)-G(t_j)|+\varepsilon$.
+	The maximum is over finitely many points, so it converges to zero in probability.
+	Since $\varepsilon$ is arbitrary, $\sup_t|G_n^*(t)-G(t)|\pto0$, and likewise $\sup_t|G_n(t,F_0)-G(t)|\to0$.
+	Hence, the triangle inequality gives
+	\begin{align*}
+		\sup_t|G_n^*(t)-G_n(t,F_0)|
+		&\le\sup_t|G_n^*(t)-G(t)|+\sup_t|G_n(t,F_0)-G(t)|
+		\pto0.
+		\qedhere
+	\end{align*}
+\end{proof}
+
+\begin{remark}
+	The convergence $G_n(t,F_0)\to G(t)$ is usually given by the \gls{clt}.
+	The hard part is $G_n^*(t)\pto G(t)$:
+	the bootstrap sample is drawn from $F_n$, which changes with $n$,
+	so the \gls{clt} for a fixed distribution does not apply directly.
+	This requires triangular-array \gls{clt} arguments even in the simplest case, \autoref{ex-mean}.
+\end{remark}
+
+\begin{remark}[When the Bootstrap Fails]
+	The bootstrap works when the distribution of $R_n$ depends smoothly on the underlying distribution,
+	so that replacing $F_0$ by the nearby $F_n$ barely changes it.
+	Consistency of $F_n$ for $F_0$ alone is not enough.
+	The bootstrap can fail when the estimator depends on features of $F_0$ that $F_n$ estimates poorly,
+	such as the boundary of the support, as in \autoref{ex-max}.
+\end{remark}
+
+\begin{example}[Bootstrap Failure for the Maximum]\label{ex-max}
+	Let $X_i\iidto U[0,\theta_0]$ and $\widehat\theta=\max_iX_i$.
+	Here $\widehat\theta$ converges at rate $n$,
+	so instead take $R_n=n(\theta_0-\widehat\theta)$ and $R_n^*=n(\widehat\theta-\widehat\theta^*)$.
+	For $t\ge0$,
+	\begin{align}
+		P_{F_0}(R_n\le t)
+		&=1-P_{F_0}\Bigl(X_i<\theta_0-\frac tn\ \text{for all}\ i\Bigr) \\
+		&=1-\Bigl(1-\frac t{n\theta_0}\Bigr)^n
+		\to1-e^{-t/\theta_0},
+	\end{align}
+	so $R_n$ has a continuous exponential limit and $G_n(0,F_0)=0$.
+	In the bootstrap world, $\widehat\theta^*=\widehat\theta$ whenever the largest observation is drawn at least once, so
+	\begin{align}
+		G_n^*(0)=P^*(R_n^*=0)=1-\Bigl(1-\frac1n\Bigr)^n\to1-e\inv\approx0.63.
+	\end{align}
+	Hence, $G_n^*$ keeps an atom at zero and the bootstrap is inconsistent.
+\end{example}
+
+\section{Confidence Intervals and Hypothesis Tests}
+
+Since we know $G_n^*$ exactly once the data is given, we can read off any quantile of $R_n^*$ from $G_n^*$.
+In practice, the bootstrap quantiles are estimated using simulations:
+the $\alpha$ quantile is estimated by the $\lceil B\alpha\rceil$-th order statistic of the simulated $\{R_n^{*(b)}\}_{b=1}^{B}$.
+For example, with $B=10{,}000$ and $\alpha=0.025$, we use the $250$th order statistic.
+However, even with the quantiles, there are still several ways to construct a confidence interval.
+
+\begin{definition}[Efron's Percentile]
+	Let $a_\alpha^*$ be the $\alpha$ quantile of $\widehat\theta^*$.
+	Efron's percentile interval is
+	\begin{align}
+		\left[a_{\alpha/2}^*,\;a_{1-\alpha/2}^*\right].
+	\end{align}
+\end{definition}
+
+\begin{definition}[Percentile]
+	Let $d_\alpha^*$ be the $\alpha$ quantile of $\widehat\theta^*-\widehat\theta$.
+	By bootstrap consistency for $R_n$,
+	\begin{align}
+		P_{F_0}\bigl(d_{\alpha/2}^*\le\widehat\theta-\theta_0\le d_{1-\alpha/2}^*\bigr)
+		\approx P^*\bigl(d_{\alpha/2}^*\le\widehat\theta^*-\widehat\theta\le d_{1-\alpha/2}^*\bigr)
+		\approx1-\alpha.
+	\end{align}
+	Hence, the percentile interval, also known as the \emph{basic} interval, is
+	\begin{align}
+		\left[\widehat\theta-d_{1-\alpha/2}^*,\;\widehat\theta-d_{\alpha/2}^*\right].
+	\end{align}
+\end{definition}
+
+\begin{remark}[Relations]
+	Since $a_\alpha^*=\widehat\theta+d_\alpha^*$, Efron's percentile interval is
+	\begin{align}
+		\left[\widehat\theta+d_{\alpha/2}^*,\;\widehat\theta+d_{1-\alpha/2}^*\right],
+	\end{align}
+	the percentile interval reflected about $\widehat\theta$.
+	The two coincide when the distribution of $\widehat\theta^*-\widehat\theta$ is symmetric about zero.
+	The percentile interval is valid whenever the bootstrap is consistent for $R_n$;
+	Efron's percentile interval additionally needs the limit of $R_n$ to be symmetric about zero, e.g., normal.
+	Unlike the percentile interval, Efron's percentile interval is invariant to strictly increasing transformations of $\theta$:
+	if $g$ is strictly increasing, then the $\alpha$ quantile of $g(\widehat\theta^*)$ is $g(a_\alpha^*)$.
+\end{remark}
+
+\begin{definition}[Percentile-$t$]
+	Let $s(\widehat\theta)$ denote the standard error of $\widehat\theta$, and $s^*(\widehat\theta^*)$ its bootstrap analogue computed from the bootstrap sample.
+	The $t$-statistic and its bootstrap analogue are
+	\begin{align}
+		T_n = \frac{\widehat\theta-\theta_0}{s(\widehat\theta)}
+		\quad\text{and}\quad
+		T_n^* = \frac{\widehat\theta^*-\widehat\theta}{s^*(\widehat\theta^*)}.
+	\end{align}
+	Let $q_\alpha^*$ be the $\alpha$ quantile of $T_n^*$.
+	By bootstrap consistency for $T_n$,
+	\begin{align}
+		P_{F_0}\bigl(q_{\alpha/2}^*\le T_n\le q_{1-\alpha/2}^*\bigr)
+		\approx P^*\bigl(q_{\alpha/2}^*\le T_n^*\le q_{1-\alpha/2}^*\bigr)
+		\approx1-\alpha.
+	\end{align}
+	Solving for $\theta_0$ gives the percentile-$t$ interval
+	\begin{align}
+		\left[\widehat\theta-s(\widehat\theta)q_{1-\alpha/2}^*,\;\widehat\theta-s(\widehat\theta)q_{\alpha/2}^*\right].
+	\end{align}
+\end{definition}
+
+\begin{definition}[Bootstrap $t$-Test]
+	For $H_0:\theta=\theta_{\mathrm H}$ against $H_1:\theta\ne\theta_{\mathrm H}$, let $T_n=(\widehat\theta-\theta_{\mathrm H})/s(\widehat\theta)$,
+	compute $T_n^{*(b)}=(\widehat\theta^{*(b)}-\widehat\theta)/s^*(\widehat\theta^{*(b)})$ for $b=1,...,B$,
+	and let $c_{1-\alpha}^*$ be the $1-\alpha$ quantile of $|T_n^*|$.
+	Reject $H_0$ if $|T_n|>c_{1-\alpha}^*$.
+\end{definition}
+
+\begin{remark}
+	Rejecting $H_0$ when $|T_n|>c_{1-\alpha}^*$ is equivalent to
+	$\theta_{\mathrm H}\notin\bigl[\widehat\theta-s(\widehat\theta)c_{1-\alpha}^*,\;\widehat\theta+s(\widehat\theta)c_{1-\alpha}^*\bigr]$,
+	the \emph{symmetric} percentile-$t$ interval.
+	The equal-tailed percentile-$t$ interval above instead inverts the test that rejects if $T_n<q_{\alpha/2}^*$ or $T_n>q_{1-\alpha/2}^*$.
+\end{remark}
+
+\begin{definition}[Bootstrap Wald Test]
+	For $k$-dimensional $\theta$ with $\sqrt n(\widehat\theta-\theta_0)\dto\normaldistribution(0,V)$ and $\widehat V\pto V$,
+	the Wald statistic for $H_0:\theta=\theta_{\mathrm H}$ and its bootstrap analogue are
+	\begin{align}
+		W_n=n(\widehat\theta-\theta_{\mathrm H})\T\widehat V\inv(\widehat\theta-\theta_{\mathrm H})
+		\qquad\text{and}\qquad
+		W_n^*=n(\widehat\theta^*-\widehat\theta)\T(\widehat V^*)\inv(\widehat\theta^*-\widehat\theta).
+	\end{align}
+	Reject $H_0$ if $W_n$ exceeds the $1-\alpha$ quantile of $W_n^*$.
+\end{definition}
+
+\begin{remark}[Asymptotic Refinement]
+	A bootstrap method has an \emph{asymptotic refinement} if its approximation error vanishes faster than that of the normal approximation.
+	For an asymptotically pivotal statistic such as $T_n$, whose limit $\normaldistribution(0,1)$ does not depend on unknown parameters,
+	one can show under regularity conditions that
+	\begin{gather}
+		P^*(T_n^*\le t)-P_{F_0}(T_n\le t)=O_p(n\inv), \\
+		\Phi(t)-P_{F_0}(T_n\le t)=O(n^{-1/2}),
+	\end{gather}
+	where $\Phi$ is the standard normal \gls{cdf}.
+	Hence, the bootstrap quantile $q_\alpha^*$ approximates the true quantile of $T_n$ more accurately than the normal quantile $z_\alpha=\Phi\inv(\alpha)$ does.
+	The percentile and Efron's percentile intervals instead bootstrap the non-pivotal $\sqrt n(\widehat\theta-\theta_0)$,
+	whose limit $\normaldistribution(0,V)$ depends on the unknown $V$.
+	The bootstrap effectively estimates $V$ with error $O_p(n^{-1/2})$, so these intervals have no refinement.
+	This is a main reason to prefer studentized statistics, but the gain in coverage depends on the interval.
+	One-sided percentile-$t$ intervals have coverage error $O(n\inv)$ instead of $O(n^{-1/2})$,
+	and the symmetric percentile-$t$ interval has $O(n^{-2})$.
+	For equal-tailed two-sided intervals, the $n^{-1/2}$ terms cancel,
+	so the normal, percentile, Efron's percentile, and percentile-$t$ intervals all have coverage error $O(n\inv)$.
+\end{remark}
+
+
+\section{Bootstrap for Regression}
+
+Consider $Y_i=X_i\T\beta_0+u_i$ with \gls{ols} estimator $\widehat\beta$ and residuals $\widehat u_i$, and let $X=(X_1,...,X_n)\T$.
+The methods below differ in what they resample, and hence in what they assume about $u_i$.
+
+\begin{definition}[Pairs Bootstrap]
+	Resample the pairs $(Y_i,X_i)$ with replacement, and regress $Y_i^*$ on $X_i^*$ to get $\widehat\beta^*$.
+\end{definition}
+
+\begin{remark}
+	The pairs bootstrap only assumes $\E(X_iu_i)=0$ and \gls{iid} pairs.
+	It preserves the joint distribution of $(Y_i,X_i)$, including any heteroskedasticity.
+\end{remark}
+
+\begin{definition}[Residual Bootstrap]
+	Draw $u_1^*,...,u_n^*$ with replacement from the centered residuals $\widehat u_i-\overline{\widehat u}$,
+	set $Y_i^*=X_i\T\widehat\beta+u_i^*$ holding $X_i$ fixed, and re-estimate $\widehat\beta^*$.
+\end{definition}
+
+\begin{remark}[Centering the Residuals]
+	Centering ensures $\E^*u_i^*=0$, mirroring $\E u_i=0$.
+	If $X_i$ includes an intercept, the \gls{ols} residuals already satisfy $\overline{\widehat u}=0$, so centering does nothing.
+	Without an intercept, $\overline{\widehat u}\ne0$ in general, and the uncentered draws would give
+	$\E^*(\widehat\beta^*-\widehat\beta)=(X\T X)\inv\sum_iX_i\,\overline{\widehat u}\ne0$,
+	a bias the original estimator does not have.
+\end{remark}
+
+\begin{remark}
+	Each $u_i^*$ is drawn from the same distribution regardless of $X_i$,
+	so the residual bootstrap imposes that $u_i$ is \gls{iid} and independent of $X_i$.
+	It is invalid under conditional heteroskedasticity.
+\end{remark}
+
+\begin{definition}[Wild Bootstrap]
+	Set $u_i^*=\widehat u_i\xi_i$ and $Y_i^*=X_i\T\widehat\beta+u_i^*$, holding $X_i$ fixed,
+	where $\xi_i$ are \gls{iid}, independent of the data, with $\E\xi_i=0$ and $\E\xi_i^2=1$.
+	Re-estimate $\widehat\beta^*$ by regressing $Y_i^*$ on $X_i$.
+\end{definition}
+
+\begin{remark}[Rademacher Random Variables]
+	A common choice for $\xi_i$ is the Rademacher distribution, with $P(\xi_i=1)=P(\xi_i=-1)=1/2$.
+\end{remark}
+
+\begin{remark}
+	Like the pairs bootstrap, the wild bootstrap only needs $\E(X_iu_i)=0$ and \gls{iid} pairs, and allows heteroskedasticity.
+	Since $\E^*u_i^*=0$ and $\E^*u_i^{*2}=\widehat u_i^2$, each observation keeps its own residual variance, and
+	\begin{gather}
+		\widehat\beta^*-\widehat\beta=\left(\frac{X\T X}{n}\right)\inv\frac1n\sum_{i=1}^nX_i\widehat u_i\xi_i
+		\shortintertext{and hence}
+		\var^*(\widehat\beta^*)=\frac1n\left(\frac{X\T X}{n}\right)\inv\left(\frac1n\sum_{i=1}^nX_iX_i\T\widehat u_i^2\right)\left(\frac{X\T X}{n}\right)\inv,
+	\end{gather}
+	which is the heteroskedasticity-robust variance estimator.
+	So $n\var^*(\widehat\beta^*)$ is consistent for $V$, the asymptotic variance of $\sqrt n(\widehat\beta-\beta_0)$, whenever $\E(X_iu_i)=0$.
+	Conditional on the data, $n^{-1/2}\sum_iX_i\widehat u_i\xi_i$ is approximately normal by the \gls{clt},
+	so $\sqrt n(\widehat\beta^*-\widehat\beta)$ has the same limit $\normaldistribution(0,V)$ as $\sqrt n(\widehat\beta-\beta_0)$.
+	The bootstrap world has $\E^*(u_i^*\given X_i)=0$ by construction even if $\E(u_i\given X_i)\ne0$.
+\end{remark}
+
+\begin{remark}[Clustered Data]
+	If observations are dependent within clusters, resampling individual observations breaks the dependence.
+	The cluster bootstrap resamples whole clusters, and the wild cluster bootstrap uses one $\xi_g$ per cluster $g$.
+	Both require care when there are few clusters.
+\end{remark}
+
+\begin{remark}[Wild or Pairs?]
+	For \gls{ols}, both are valid under the same conditions.
+	The wild bootstrap holds $X$ fixed, so it never drops rare regressor values or high-leverage points.
+	It can also generate $Y_i^*$ from the restricted estimate $\widetilde\beta$ and its residuals, so that $H_0$ holds in the bootstrap world;
+	$T_n^*$ is then centered at the null value, which is the true value in this bootstrap world, rather than at $\widehat\beta$.
+	The pairs bootstrap does not do this directly, since the true parameter of $F_n$ is the unrestricted $\widehat\beta$.
+	Imposing $H_0$ tends to give more accurate test sizes, since under $H_0$ the restricted estimates are more precise.
+	Hence, the wild bootstrap is the usual choice for tests in linear regression, especially with few clusters.
+	The pairs bootstrap only requires recomputing the estimator on resampled data,
+	so it is the simpler choice for nonlinear and other estimators without a natural residual.
+\end{remark}
+
+\vfill
+\section*{Acronyms}
+\printglossaries
+
+{\sloppy\printbibliography[heading=bibintoc,title={References}]}
+
+\end{document}
